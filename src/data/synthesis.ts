@@ -79,12 +79,12 @@ export function findSynthesisRule(input: WeaponRarity): SynthesisRule | undefine
   return synthesisRules.find(rule => rarityEquals(rule.input.rarity, input));
 }
 
-// 必要素材数の逆算マップ（L1基準）
+// 各武器1本がL1何本分かを表すマップ
 export const requiredL1Map: Record<string, number> = {
-  // Legend
-  'L4': 125,   // 5^3 = 125
-  'L3': 25,    // 5^2 = 25
-  'L2': 5,     // 5^1 = 5
+  // Legend（L1より下位なので1未満）
+  'L4': 1/125, // L4 1本 = L1 の 1/125 本分
+  'L3': 1/25,  // L3 1本 = L1 の 1/25 本分
+  'L2': 1/5,   // L2 1本 = L1 の 1/5 本分
   'L1': 1,     // 基準
 
   // Star
