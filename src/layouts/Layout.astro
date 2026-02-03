@@ -1,0 +1,65 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+const currentPath = Astro.url.pathname;
+
+const navItems = [
+  { name: 'ホーム', href: '/' },
+  { name: '目標計算', href: '/goal' },
+  { name: 'ガチャ分析', href: '/gacha' },
+  { name: '武器図鑑', href: '/weapons' },
+];
+---
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title} | 月ウサギのそだてかた 攻略</title>
+  <meta name="description" content="月ウサギのそだてかた - 武器合成とガチャ分析ツール" />
+</head>
+<body class="bg-gray-50 text-gray-900">
+  <div class="flex min-h-screen">
+    <!-- サイドバー -->
+    <aside class="w-64 bg-white border-r border-gray-200 fixed h-full">
+      <div class="p-6">
+        <h1 class="text-xl font-bold text-gray-800 mb-2">月ウサギのそだてかた</h1>
+        <p class="text-sm text-gray-600">攻略ツール</p>
+      </div>
+
+      <nav class="px-4">
+        <ul class="space-y-1">
+          {navItems.map((item) => (
+            <li>
+              <a
+                href={item.href}
+                class={`block px-4 py-2 rounded-md transition-colors ${
+                  currentPath === item.href
+                    ? 'bg-blue-50 text-blue-700 font-medium'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                {item.name}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- メインコンテンツ -->
+    <main class="flex-1 ml-64 p-8">
+      <div class="max-w-6xl mx-auto">
+        <h2 class="text-3xl font-bold mb-6">{title}</h2>
+        <slot />
+      </div>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,17 +1,170 @@
 ---
-
+import Layout from '../layouts/Layout.astro';
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout title="ホーム">
+  <div class="space-y-8">
+    <!-- サイト説明 -->
+    <div class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl shadow-lg p-8 text-white">
+      <h3 class="text-2xl font-bold mb-3">月ウサギのそだてかた 攻略ツール</h3>
+      <p class="text-white/90 mb-4">
+        武器合成の計画とガチャ分析ができるツール集です。
+      </p>
+      <p class="text-white/70 text-sm">
+        目標の武器を作るのに何日かかるか、ガチャを何回引けばいいかが分かります。
+      </p>
+    </div>
+
+    <!-- ツールカード -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <a href="/goal" class="block bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow border-l-4 border-blue-500">
+        <div class="flex items-start gap-4">
+          <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center text-2xl">
+            🎯
+          </div>
+          <div>
+            <h4 class="font-bold text-lg text-gray-900 mb-2">目標計算</h4>
+            <p class="text-sm text-gray-600">
+              作りたい武器と手持ち武器を入力して、あと何日で目標達成できるか計算
+            </p>
+          </div>
+        </div>
+      </a>
+
+      <a href="/gacha" class="block bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow border-l-4 border-purple-500">
+        <div class="flex items-start gap-4">
+          <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center text-2xl">
+            🎰
+          </div>
+          <div>
+            <h4 class="font-bold text-lg text-gray-900 mb-2">ガチャ分析</h4>
+            <p class="text-sm text-gray-600">
+              ガチャN回で何の武器が作れるか分析。G1やU4までの道のりが分かる
+            </p>
+          </div>
+        </div>
+      </a>
+
+      <a href="/weapons" class="block bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow border-l-4 border-amber-500 md:col-span-2">
+        <div class="flex items-start gap-4">
+          <div class="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center text-2xl">
+            ⚔️
+          </div>
+          <div>
+            <h4 class="font-bold text-lg text-gray-900 mb-2">武器図鑑</h4>
+            <p class="text-sm text-gray-600">
+              全武器のレア度とドラバス（L1）換算の必要本数一覧
+            </p>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- 合成ルール早見表 -->
+    <div class="bg-white rounded-xl shadow p-6">
+      <h3 class="text-lg font-semibold mb-4">合成ルール早見表</h3>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Legend -->
+        <div class="bg-amber-50 rounded-lg p-4">
+          <h4 class="font-bold text-amber-700 mb-3">Legend (L)</h4>
+          <div class="space-y-2 text-sm">
+            <div class="flex justify-between">
+              <span class="font-mono">L4 × 5</span>
+              <span>→ L3</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="font-mono">L3 × 5</span>
+              <span>→ L2</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="font-mono">L2 × 5</span>
+              <span>→ L1 (ドラバス)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Star -->
+        <div class="bg-purple-50 rounded-lg p-4">
+          <h4 class="font-bold text-purple-700 mb-3">Star (S)</h4>
+          <div class="space-y-2 text-sm">
+            <div class="flex justify-between">
+              <span class="font-mono">L1 × 3</span>
+              <span>→ S4</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="font-mono">S4 × 3</span>
+              <span>→ S3</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="font-mono">S3 × 3</span>
+              <span>→ S2</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="font-mono">S2 × 2</span>
+              <span>→ S1</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Galaxy & Universe -->
+        <div class="bg-cyan-50 rounded-lg p-4">
+          <h4 class="font-bold text-cyan-700 mb-3">Galaxy (G) / Universe (U)</h4>
+          <div class="space-y-2 text-sm">
+            <div class="flex justify-between">
+              <span class="font-mono">S1 × 2</span>
+              <span>→ G4</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="font-mono">G4 × 2</span>
+              <span>→ G3</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="font-mono">G3 × 2</span>
+              <span>→ G2</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="font-mono">G2 × 2</span>
+              <span>→ G1</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="font-mono">G1 × 2</span>
+              <span>→ U4</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- クイックリファレンス -->
+    <div class="bg-white rounded-xl shadow p-6">
+      <h3 class="text-lg font-semibold mb-4">必要ドラバス（L1）早見表</h3>
+
+      <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
+        {[
+          { name: 'S4', l1: 3, color: '#A855F7' },
+          { name: 'S3', l1: 9, color: '#A855F7' },
+          { name: 'S2', l1: 27, color: '#A855F7' },
+          { name: 'S1', l1: 54, color: '#A855F7' },
+          { name: 'G4', l1: 108, color: '#06B6D4' },
+          { name: 'G3', l1: 216, color: '#06B6D4' },
+          { name: 'G2', l1: 432, color: '#06B6D4' },
+          { name: 'G1', l1: 864, color: '#06B6D4' },
+          { name: 'U4', l1: 1728, color: '#EF4444' },
+        ].map((item) => (
+          <div class="text-center p-3 bg-gray-50 rounded-lg">
+            <div
+              class="text-xl font-bold mb-1"
+              style={`color: ${item.color}`}
+            >
+              {item.name}
+            </div>
+            <div class="text-sm text-gray-600">
+              {item.l1.toLocaleString()}本
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</Layout>

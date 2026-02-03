@@ -1,0 +1,14 @@
+---
+import Layout from '../layouts/Layout.astro';
+import GachaAnalyzer from '../components/GachaAnalyzer';
+---
+
+<Layout title="ガチャ分析">
+  <div class="mb-6">
+    <p class="text-gray-600">
+      ガチャをN回引いたら何の武器が作れるか分析します。
+    </p>
+  </div>
+
+  <GachaAnalyzer client:load />
+</Layout>
