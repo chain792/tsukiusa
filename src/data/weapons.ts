@@ -9,7 +9,7 @@ export const rarityColors: Record<string, string> = {
   Legend: '#F59E0B',   // オレンジ
   Star: '#A855F7',     // 紫明
   Galaxy: '#06B6D4',   // シアン
-  Universe: '#EF4444'  // 赤
+  Universe: '#22C55E'  // 緑
 };
 
 // 全ての武器レア度リスト
