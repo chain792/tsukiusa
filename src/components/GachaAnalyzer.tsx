@@ -5,18 +5,53 @@ import { getRarityShorthand, requiredL1Map } from '../data/synthesis';
 import { rarityColors } from '../data/weapons';
 import type { GachaLevel, ExpectationAnalysisResult } from '../types';
 
+const levelNames: Record<number, string> = {
+  4: '下級',
+  3: '中級',
+  2: '上級',
+  1: '最上級'
+};
+
+const tierNames: Record<string, string> = {
+  Legend: 'レジェンド',
+  Star: 'スター',
+  Galaxy: 'ギャラクシー',
+  Universe: 'ユニバース'
+};
+
+function getWeaponDisplayName(name: string): string {
+  const tier = name.charAt(0);
+  const level = parseInt(name.charAt(1));
+  const tierMap: Record<string, string> = {
+    'L': 'レジェンド',
+    'S': 'スター',
+    'G': 'ギャラクシー',
+    'U': 'ユニバース'
+  };
+  return `${tierMap[tier] || tier}${levelNames[level] || ''}`;
+}
+
+function getTierFromName(name: string): string {
+  const tier = name.charAt(0);
+  const tierMap: Record<string, string> = {
+    'L': 'Legend',
+    'S': 'Star',
+    'G': 'Galaxy',
+    'U': 'Universe'
+  };
+  return tierMap[tier] || 'Legend';
+}
+
 export default function GachaAnalyzer() {
   const [gachaLevel, setGachaLevel] = useState<GachaLevel>(13);
   const [totalPulls, setTotalPulls] = useState<number>(10000);
   const [result, setResult] = useState<ExpectationAnalysisResult | null>(null);
 
-  // 自動計算
   useEffect(() => {
     const analysisResult = analyzeExpectation(gachaLevel, totalPulls, false);
     setResult(analysisResult);
   }, [gachaLevel, totalPulls]);
 
-  // 確率テーブル
   const probabilities = calculateActualProbabilities(gachaLevel);
 
   // L1換算の合計を計算
@@ -31,37 +66,28 @@ export default function GachaAnalyzer() {
     return total;
   };
 
-  // 最高レア度の武器を取得
-  const getHighestRarity = (): { name: string; count: number } | null => {
-    if (!result || result.synthesizedResults.length === 0) return null;
-    // synthesizedResultsは高レア度順にソートされている
-    const highest = result.synthesizedResults[0];
-    return {
-      name: getRarityShorthand(highest.rarity),
-      count: Math.floor(highest.count)
-    };
-  };
-
-  // 特定の武器が何本作れるか計算
-  const calculateCraftable = (targetName: string): number => {
-    const totalL1 = calculateTotalL1Value();
-    const required = requiredL1Map[targetName] || 1;
-    return Math.floor(totalL1 / required);
+  // 合成結果を整数で取得（余りも含む）
+  const getIntegerResults = (): { name: string; count: number }[] => {
+    if (!result) return [];
+    return result.synthesizedResults
+      .map(item => ({
+        name: getRarityShorthand(item.rarity),
+        count: Math.floor(item.count)
+      }))
+      .filter(item => item.count > 0);
   };
 
   const totalL1Value = calculateTotalL1Value();
-  const highestRarity = getHighestRarity();
+  const integerResults = getIntegerResults();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* 設定エリア */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold mb-4">ガチャ設定</h3>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="bg-white rounded-lg shadow p-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* ガチャレベル */}
           <div>
-            <label className="block mb-3 text-sm font-medium text-gray-700">
+            <label className="block mb-2 text-sm font-medium text-gray-700">
               ガチャレベル
             </label>
             <div className="flex flex-wrap gap-2">
@@ -69,9 +95,9 @@ export default function GachaAnalyzer() {
                 <button
                   key={rate.level}
                   onClick={() => setGachaLevel(rate.level)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
                     gachaLevel === rate.level
-                      ? 'bg-blue-600 text-white shadow-md'
+                      ? 'bg-blue-600 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
@@ -81,12 +107,12 @@ export default function GachaAnalyzer() {
             </div>
           </div>
 
-          {/* 試行回数 */}
+          {/* ガチャ回数 */}
           <div>
-            <label className="block mb-3 text-sm font-medium text-gray-700">
+            <label className="block mb-2 text-sm font-medium text-gray-700">
               ガチャ回数
             </label>
-            <div className="flex flex-wrap gap-2 mb-3">
+            <div className="flex flex-wrap gap-2 mb-2">
               {[1000, 5000, 10000, 50000, 100000].map((n) => (
                 <button
                   key={n}
@@ -107,71 +133,88 @@ export default function GachaAnalyzer() {
               onChange={(e) => setTotalPulls(Math.max(1, Number(e.target.value)))}
               min="1"
               step="1000"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-sm"
               placeholder="カスタム回数"
             />
           </div>
         </div>
       </div>
 
-      {/* メイン結果 - 作れる武器 */}
+      {/* メイン結果 */}
       {result && (
-        <div className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg shadow-lg p-6 text-white">
-          <h3 className="text-lg font-semibold mb-2 opacity-90">
-            ガチャ {totalPulls.toLocaleString()}回 の結果
-          </h3>
-          <p className="text-sm opacity-75 mb-6">レベル{gachaLevel}のガチャを{totalPulls.toLocaleString()}回引いて全て合成した場合</p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* 最高レア度の武器 */}
-            <div className="bg-white/10 rounded-xl p-6">
-              <p className="text-sm opacity-80 mb-2">作れる最高レア武器</p>
-              {highestRarity && highestRarity.count > 0 ? (
-                <div className="flex items-baseline gap-2">
-                  <span
-                    className="text-5xl font-bold"
-                    style={{ color: rarityColors[result.synthesizedResults[0]?.rarity.tier || 'Legend'] }}
-                  >
-                    {highestRarity.name}
-                  </span>
-                  <span className="text-3xl font-bold">
-                    × {highestRarity.count}本
-                  </span>
-                </div>
-              ) : (
-                <p className="text-2xl">高レア武器は作れません</p>
-              )}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* 最終的に手に入る武器 */}
+          <div className="bg-white rounded-lg shadow p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-gray-700">最終的に手に入る武器</h3>
+              <span className="text-xs text-gray-500">
+                {totalPulls.toLocaleString()}回 × Lv.{gachaLevel}
+              </span>
             </div>
 
-            {/* L1換算合計 */}
-            <div className="bg-white/10 rounded-xl p-6">
-              <p className="text-sm opacity-80 mb-2">合計ドラバス価値（L1換算）</p>
-              <p className="text-4xl font-bold">
-                {Math.floor(totalL1Value).toLocaleString()}
-                <span className="text-xl ml-1">本</span>
-              </p>
+            {integerResults.length > 0 ? (
+              <div className="space-y-2">
+                {integerResults.map((item) => {
+                  const tier = getTierFromName(item.name);
+                  const color = rarityColors[tier];
+                  return (
+                    <div
+                      key={item.name}
+                      className="flex items-center justify-between p-2 rounded-lg"
+                      style={{ backgroundColor: `${color}15` }}
+                    >
+                      <span className="font-medium" style={{ color }}>
+                        {getWeaponDisplayName(item.name)}
+                      </span>
+                      <span className="text-lg font-bold" style={{ color }}>
+                        {item.count}本
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-sm">武器は手に入りません</p>
+            )}
+
+            <div className="mt-3 pt-3 border-t">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">レジェンド最上級換算</span>
+                <span className="font-bold text-gray-800">
+                  {Math.floor(totalL1Value).toLocaleString()}本
+                </span>
+              </div>
             </div>
           </div>
 
-          {/* 各武器の作成可能数 */}
-          <div className="mt-6">
-            <p className="text-sm opacity-80 mb-3">L1換算で作れる武器の目安</p>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {['U4', 'G1', 'G2', 'S1'].map((name) => {
-                const craftable = calculateCraftable(name);
-                const color = rarityColors[
-                  name.startsWith('U') ? 'Universe' :
-                  name.startsWith('G') ? 'Galaxy' :
-                  name.startsWith('S') ? 'Star' : 'Legend'
-                ];
+          {/* ガチャからの排出期待値 */}
+          <div className="bg-white rounded-lg shadow p-4">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">ガチャからの排出（期待値）</h3>
+
+            <div className="space-y-1.5">
+              {result.rawResults.results.map((item, index) => {
+                const name = getRarityShorthand(item.rarity);
+                const color = rarityColors[item.rarity.tier];
                 return (
-                  <div key={name} className="bg-white/10 rounded-lg p-3 text-center">
-                    <p className="text-2xl font-bold" style={{ color }}>
-                      {name}
-                    </p>
-                    <p className="text-lg">
-                      {craftable}本
-                    </p>
+                  <div key={index} className="flex items-center gap-2 text-sm">
+                    <span
+                      className="w-24 font-medium truncate"
+                      style={{ color }}
+                    >
+                      {getWeaponDisplayName(name)}
+                    </span>
+                    <div className="flex-1 h-4 bg-gray-100 rounded overflow-hidden">
+                      <div
+                        className="h-full rounded"
+                        style={{
+                          width: `${Math.min(100, (item.count / totalPulls) * 1000)}%`,
+                          backgroundColor: color
+                        }}
+                      />
+                    </div>
+                    <span className="w-16 text-right text-gray-600">
+                      {item.count >= 10 ? Math.round(item.count) : item.count.toFixed(1)}本
+                    </span>
                   </div>
                 );
               })}
@@ -180,119 +223,37 @@ export default function GachaAnalyzer() {
         </div>
       )}
 
-      {/* 排出期待値テーブル */}
-      {result && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold mb-4">排出期待値</h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* ガチャ排出 */}
-            <div>
-              <h4 className="text-sm font-medium text-gray-600 mb-3">ガチャからの排出</h4>
-              <div className="space-y-2">
-                {result.rawResults.results.map((item, index) => {
-                  const name = getRarityShorthand(item.rarity);
-                  const color = rarityColors[item.rarity.tier];
-                  const percentage = (item.count / totalPulls) * 100;
-                  return (
-                    <div key={index} className="flex items-center gap-3">
-                      <span
-                        className="w-12 text-center font-mono font-bold py-1 rounded text-white text-sm"
-                        style={{ backgroundColor: color }}
-                      >
-                        {name}
-                      </span>
-                      <div className="flex-1">
-                        <div className="h-6 bg-gray-100 rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full transition-all"
-                            style={{
-                              width: `${Math.min(100, percentage * 10)}%`,
-                              backgroundColor: color
-                            }}
-                          />
-                        </div>
-                      </div>
-                      <span className="text-sm font-medium w-20 text-right">
-                        {item.count.toFixed(1)}本
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* 合成後 */}
-            <div>
-              <h4 className="text-sm font-medium text-gray-600 mb-3">全て合成した後</h4>
-              <div className="space-y-2">
-                {result.synthesizedResults.map((item, index) => {
-                  const name = getRarityShorthand(item.rarity);
-                  const color = rarityColors[item.rarity.tier];
-                  return (
-                    <div key={index} className="flex items-center gap-3">
-                      <span
-                        className="w-12 text-center font-mono font-bold py-1 rounded text-white text-sm"
-                        style={{ backgroundColor: color }}
-                      >
-                        {name}
-                      </span>
-                      <div className="flex-1 h-6 bg-gray-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full"
-                          style={{
-                            width: `${Math.min(100, item.count * 20)}%`,
-                            backgroundColor: color
-                          }}
-                        />
-                      </div>
-                      <span className="text-sm font-medium w-20 text-right">
-                        {item.count.toFixed(2)}本
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* 確率テーブル */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold mb-4">レベル{gachaLevel}の排出確率</h3>
+      <div className="bg-white rounded-lg shadow p-4">
+        <h3 className="text-sm font-semibold text-gray-700 mb-3">
+          Lv.{gachaLevel} の排出確率
+        </h3>
 
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 text-left font-medium text-gray-700">レア度</th>
-                <th className="px-4 py-3 text-right font-medium text-gray-700">確率</th>
-                <th className="px-4 py-3 text-right font-medium text-gray-700">1000回あたり</th>
+                <th className="px-3 py-2 text-left font-medium text-gray-600">武器</th>
+                <th className="px-3 py-2 text-right font-medium text-gray-600">確率</th>
+                <th className="px-3 py-2 text-right font-medium text-gray-600">1000回あたり</th>
               </tr>
             </thead>
             <tbody className="divide-y">
               {Object.entries(probabilities).map(([rarity, prob]) => {
-                const color = rarityColors[
-                  rarity.startsWith('L') ? 'Legend' :
-                  rarity.startsWith('S') ? 'Star' :
-                  rarity.startsWith('G') ? 'Galaxy' : 'Universe'
-                ];
+                const tier = getTierFromName(rarity);
+                const color = rarityColors[tier];
                 return (
                   <tr key={rarity} className="hover:bg-gray-50">
-                    <td className="px-4 py-3">
-                      <span
-                        className="inline-block px-2 py-0.5 rounded font-mono font-medium text-white text-sm"
-                        style={{ backgroundColor: color }}
-                      >
-                        {rarity}
+                    <td className="px-3 py-2">
+                      <span style={{ color }} className="font-medium">
+                        {getWeaponDisplayName(rarity)}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-right font-medium">
+                    <td className="px-3 py-2 text-right">
                       {(prob * 100).toFixed(4)}%
                     </td>
-                    <td className="px-4 py-3 text-right text-gray-600">
-                      約{(prob * 1000).toFixed(1)}本
+                    <td className="px-3 py-2 text-right text-gray-600">
+                      {(prob * 1000).toFixed(1)}本
                     </td>
                   </tr>
                 );
