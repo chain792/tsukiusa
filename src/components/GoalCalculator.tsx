@@ -142,34 +142,34 @@ export default function GoalCalculator() {
   return (
     <div className="space-y-6 md:space-y-8 max-w-5xl mx-auto">
 
-      {/* 目標設定エリア */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="p-4 md:p-6 border-b border-gray-100 bg-gray-50/50">
-          <h2 className="text-base md:text-lg font-bold text-gray-800 flex items-center gap-2">
-            <span className="w-1 h-5 md:h-6 bg-green-600 rounded-full"></span>
-            目標設定
-          </h2>
-        </div>
+      <div className="grid grid-cols-1 gap-6 md:gap-8">
+        {/* 目標設定エリア */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="p-4 md:p-6 border-b border-gray-100 bg-gray-50/50">
+            <h2 className="text-base md:text-lg font-bold text-gray-800 flex items-center gap-2">
+              <span className="w-1 h-5 md:h-6 bg-green-600 rounded-full"></span>
+              目標設定
+            </h2>
+          </div>
 
-        <div className="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 items-start">
-          {/* 左側: 入力フォーム */}
-          <div className="space-y-4 md:space-y-6">
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">目標の武器</label>
-              <select
-                value={targetWeapon}
-                onChange={(e) => setTargetWeapon(e.target.value)}
-                className="w-full px-4 py-2.5 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none text-base"
-              >
-                {targetWeaponOptions.map((weapon) => (
-                  <option key={weapon.name} value={weapon.name}>
-                    {getWeaponDisplayName(weapon)}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div className="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 items-start">
+            {/* 左側: ゴール入力フォーム */}
+            <div className="space-y-4 md:space-y-6">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">目標の武器</label>
+                <select
+                  value={targetWeapon}
+                  onChange={(e) => setTargetWeapon(e.target.value)}
+                  className="w-full px-4 py-2.5 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none text-base"
+                >
+                  {targetWeaponOptions.map((weapon) => (
+                    <option key={weapon.name} value={weapon.name}>
+                      {getWeaponDisplayName(weapon)}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            <div className="grid grid-cols-2 gap-3 md:gap-4">
               <div>
                 <label className="block text-xs md:text-sm font-bold text-gray-700 mb-2">目標本数</label>
                 <div className="relative">
@@ -183,47 +183,65 @@ export default function GoalCalculator() {
                   <span className="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 text-gray-400 font-medium text-xs md:text-base">本</span>
                 </div>
               </div>
+            </div>
 
-              <div>
-                <label className="block text-xs md:text-sm font-bold text-gray-700 mb-2">1日の獲得数（レジェンド最上級）</label>
+            {/* 右側: ターゲットプレビュー */}
+            <div className="flex flex-col items-center justify-center p-4 md:p-6 bg-gray-50 rounded-xl border border-dashed border-gray-200 h-full min-h-[160px] md:min-h-[200px]">
+              {targetWeaponObject && targetImage && (
+                <>
+                  <div className="relative mb-3 md:mb-4">
+                    <div className="absolute inset-0 bg-white rounded-full blur-xl opacity-60"></div>
+                    <img
+                      src={targetImage.src}
+                      alt={getWeaponDisplayName(targetWeaponObject)}
+                      className="w-20 h-20 md:w-24 md:h-24 object-contain relative z-10 drop-shadow-md"
+                    />
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xs text-gray-500 mb-1">Target Weapon</div>
+                    <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-2">
+                      {getWeaponDisplayName(targetWeaponObject)}
+                    </h3>
+                    <div className="inline-flex items-center px-3 py-1 bg-white border border-gray-200 rounded-full text-xs md:text-sm font-semibold text-gray-600">
+                      × {targetCount.toLocaleString()} 本
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* 達成予測設定エリア (別ボックスに分離) */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="p-4 md:p-6 border-b border-gray-100 bg-gray-50/50">
+            <h2 className="text-base md:text-lg font-bold text-gray-800 flex items-center gap-2">
+              <span className="w-1 h-5 md:h-6 bg-purple-500 rounded-full"></span>
+              達成予測のための設定
+            </h2>
+          </div>
+          <div className="p-4 md:p-6 bg-purple-50/30">
+            <div className="flex flex-col md:flex-row md:items-end gap-4">
+              <div className="flex-1">
+                <label className="block text-xs md:text-sm font-bold text-gray-700 mb-2">
+                  1日の獲得数（レジェンド最上級換算）
+                </label>
                 <div className="relative">
                   <input
                     type="number"
                     value={dailyL1}
                     onChange={(e) => setDailyL1(Math.max(0, Number(e.target.value)))}
                     min="0"
-                    className="w-full pl-3 pr-8 py-2 md:pl-4 md:pr-10 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none text-base md:text-lg font-mono"
+                    className="w-full pl-3 pr-8 py-2 md:pl-4 md:pr-10 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-base md:text-lg font-mono"
                   />
                   <span className="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 text-gray-400 font-medium text-xs md:text-base">本</span>
                 </div>
               </div>
+              <div className="text-xs text-gray-500 md:mb-3 md:flex-1">
+                ※ 放置狩りや武器倉庫、武器ガチャ等で1日に獲得できる「レジェンド最上級」の本数を入力してください。
+                これをもとに達成予定日を算出します。
+              </div>
             </div>
-            <p className="text-[10px] md:text-xs text-gray-400 -mt-2">※1日あたりに獲得できるレジェンド最上級武器の本数を入力してください</p>
-          </div>
-
-          {/* 右側: ターゲットプレビュー */}
-          <div className="flex flex-col items-center justify-center p-4 md:p-6 bg-gray-50 rounded-xl border border-dashed border-gray-200 h-full min-h-[160px] md:min-h-[200px]">
-            {targetWeaponObject && targetImage && (
-              <>
-                <div className="relative mb-3 md:mb-4">
-                  <div className="absolute inset-0 bg-white rounded-full blur-xl opacity-60"></div>
-                  <img
-                    src={targetImage.src}
-                    alt={getWeaponDisplayName(targetWeaponObject)}
-                    className="w-20 h-20 md:w-24 md:h-24 object-contain relative z-10 drop-shadow-md"
-                  />
-                </div>
-                <div className="text-center">
-                  <div className="text-xs text-gray-500 mb-1">Target Weapon</div>
-                  <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-2">
-                    {getWeaponDisplayName(targetWeaponObject)}
-                  </h3>
-                  <div className="inline-flex items-center px-3 py-1 bg-white border border-gray-200 rounded-full text-xs md:text-sm font-semibold text-gray-600">
-                    × {targetCount.toLocaleString()} 本
-                  </div>
-                </div>
-              </>
-            )}
           </div>
         </div>
       </div>
