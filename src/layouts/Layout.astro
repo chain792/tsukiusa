@@ -7,13 +7,6 @@ interface Props {
 
 const { title } = Astro.props;
 const currentPath = Astro.url.pathname;
-
-const navItems = [
-  { name: 'ホーム', href: '/' },
-  { name: '目標計算', href: '/goal' },
-  { name: 'ガチャ分析', href: '/gacha' },
-  { name: '武器図鑑', href: '/weapons' },
-];
 ---
 
 <!DOCTYPE html>
@@ -34,21 +27,64 @@ const navItems = [
       </div>
 
       <nav class="px-4">
+        <!-- ホーム -->
+        <a
+          href="/"
+          class={`block px-4 py-2 rounded-md transition-colors ${
+            currentPath === '/'
+              ? 'bg-blue-50 text-blue-700 font-medium'
+              : 'text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          ホーム
+        </a>
+
+        <!-- 区切り線 -->
+        <div class="border-t border-gray-200 my-3"></div>
+
+        <!-- 武器セクション -->
+        <div class="mb-2">
+          <p class="px-4 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            武器
+          </p>
+        </div>
         <ul class="space-y-1">
-          {navItems.map((item) => (
-            <li>
-              <a
-                href={item.href}
-                class={`block px-4 py-2 rounded-md transition-colors ${
-                  currentPath === item.href
-                    ? 'bg-blue-50 text-blue-700 font-medium'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                {item.name}
-              </a>
-            </li>
-          ))}
+          <li>
+            <a
+              href="/weapons"
+              class={`block px-4 py-2 rounded-md transition-colors ${
+                currentPath === '/weapons'
+                  ? 'bg-blue-50 text-blue-700 font-medium'
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              武器図鑑
+            </a>
+          </li>
+          <li>
+            <a
+              href="/goal"
+              class={`block px-4 py-2 rounded-md transition-colors ${
+                currentPath === '/goal'
+                  ? 'bg-blue-50 text-blue-700 font-medium'
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              目標計算
+            </a>
+          </li>
+          <li>
+            <a
+              href="/gacha"
+              class={`block px-4 py-2 rounded-md transition-colors ${
+                currentPath === '/gacha'
+                  ? 'bg-blue-50 text-blue-700 font-medium'
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              ガチャシミュレータ
+            </a>
+          </li>
         </ul>
       </nav>
     </aside>
