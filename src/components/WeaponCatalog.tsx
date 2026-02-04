@@ -73,7 +73,7 @@ export default function WeaponCatalog() {
     return (
       <div
         key={weapon.name}
-        className="relative overflow-hidden rounded-xl border border-gray-100 bg-white p-4 flex flex-col items-center justify-center text-center transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:border-blue-200"
+        className="relative overflow-hidden rounded-xl border border-gray-100 bg-white p-3 md:p-4 flex flex-col items-center justify-center text-center transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:border-blue-200"
         style={{ borderColor: `${color}30` }}
       >
         <div
@@ -84,14 +84,14 @@ export default function WeaponCatalog() {
         <img
           src={weaponImages[weapon.name].src}
           alt={weapon.name}
-          className="w-16 h-16 mx-auto mb-2 object-contain drop-shadow-sm"
+          className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-2 object-contain drop-shadow-sm"
         />
-        <div className="text-sm font-bold text-gray-700 mb-1">
+        <div className="text-xs md:text-sm font-bold text-gray-700 mb-1">
           {tierName}{levelName}
         </div>
-        <div className="text-lg font-extrabold text-gray-800">
+        <div className="text-base md:text-lg font-extrabold text-gray-800">
           {required % 1 === 0 ? required.toLocaleString() : required.toFixed(2)}
-          <span className="text-xs font-normal text-gray-400 ml-1">本</span>
+          <span className="text-[10px] md:text-xs font-normal text-gray-400 ml-1">本</span>
         </div>
       </div>
     );
@@ -100,14 +100,14 @@ export default function WeaponCatalog() {
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       {/* 基準武器選択 - コンパクト化 */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <label className="font-bold text-gray-700 whitespace-nowrap">基準武器:</label>
-          <div className="relative">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 px-4 py-3 md:px-6 md:py-4 flex flex-col sm:flex-row sm:items-center gap-3 md:gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+          <label className="font-bold text-gray-700 whitespace-nowrap text-sm md:text-base">基準武器:</label>
+          <div className="relative w-full sm:w-auto">
             <select
               value={baseWeapon}
               onChange={(e) => setBaseWeapon(e.target.value)}
-              className="appearance-none px-4 py-1.5 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none font-medium bg-white text-sm"
+              className="appearance-none w-full sm:w-auto px-4 py-1.5 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none font-medium bg-white text-sm"
             >
               {baseWeaponOptions.map(option => (
                 <option key={option.value} value={option.value}>
@@ -121,25 +121,25 @@ export default function WeaponCatalog() {
               </svg>
             </div>
           </div>
-          <div className="text-xs text-gray-500">
-            ※ 各武器1本を作るのに、基準武器が何本必要かを表示します
-          </div>
+        </div>
+        <div className="text-[10px] md:text-xs text-gray-500">
+          ※ 各武器1本を作るのに、基準武器が何本必要かを表示します
         </div>
       </div>
 
       {/* Star - 帯ヘッダー形式に戻す */}
       <div className="bg-white rounded-xl shadow border border-gray-100 overflow-hidden">
         <div
-          className="px-6 py-3 border-b flex items-center gap-2"
+          className="px-4 py-2 md:px-6 md:py-3 border-b flex items-center gap-2"
           style={{
             background: `linear-gradient(90deg, ${rarityColors.Star}15, #ffffff)`,
             borderLeft: `4px solid ${rarityColors.Star}`
           }}
         >
-          <h3 className="text-lg font-bold" style={{ color: rarityColors.Star }}>Star (スター)</h3>
+          <h3 className="text-base md:text-lg font-bold" style={{ color: rarityColors.Star }}>Star (スター)</h3>
         </div>
-        <div className="p-6">
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4">
+        <div className="p-4 md:p-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
             {starWeapons.map(weapon => renderWeaponCard(weapon))}
           </div>
         </div>
@@ -148,16 +148,16 @@ export default function WeaponCatalog() {
       {/* Galaxy - 帯ヘッダー形式に戻す */}
       <div className="bg-white rounded-xl shadow border border-gray-100 overflow-hidden">
         <div
-          className="px-6 py-3 border-b flex items-center gap-2"
+          className="px-4 py-2 md:px-6 md:py-3 border-b flex items-center gap-2"
           style={{
             background: `linear-gradient(90deg, ${rarityColors.Galaxy}15, #ffffff)`,
             borderLeft: `4px solid ${rarityColors.Galaxy}`
           }}
         >
-          <h3 className="text-lg font-bold" style={{ color: rarityColors.Galaxy }}>Galaxy (ギャラクシー)</h3>
+          <h3 className="text-base md:text-lg font-bold" style={{ color: rarityColors.Galaxy }}>Galaxy (ギャラクシー)</h3>
         </div>
-        <div className="p-6">
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4">
+        <div className="p-4 md:p-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
             {galaxyWeapons.map(weapon => renderWeaponCard(weapon))}
           </div>
         </div>
@@ -166,16 +166,16 @@ export default function WeaponCatalog() {
       {/* Universe - 帯ヘッダー形式に戻す */}
       <div className="bg-white rounded-xl shadow border border-gray-100 overflow-hidden">
         <div
-          className="px-6 py-3 border-b flex items-center gap-2"
+          className="px-4 py-2 md:px-6 md:py-3 border-b flex items-center gap-2"
           style={{
             background: `linear-gradient(90deg, ${rarityColors.Universe}15, #ffffff)`,
             borderLeft: `4px solid ${rarityColors.Universe}`
           }}
         >
-          <h3 className="text-lg font-bold" style={{ color: rarityColors.Universe }}>Universe (ユニバース)</h3>
+          <h3 className="text-base md:text-lg font-bold" style={{ color: rarityColors.Universe }}>Universe (ユニバース)</h3>
         </div>
-        <div className="p-6">
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4">
+        <div className="p-4 md:p-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
             {universeWeapons.map(weapon => renderWeaponCard(weapon))}
           </div>
         </div>
