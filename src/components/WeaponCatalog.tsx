@@ -64,96 +64,120 @@ export default function WeaponCatalog() {
   const galaxyWeapons = allWeapons.filter(w => w.rarity.tier === 'Galaxy');
   const universeWeapons = allWeapons.filter(w => w.rarity.tier === 'Universe');
 
-  const renderWeaponCard = (weapon: typeof allWeapons[0], hoverColor: string) => {
+  const renderWeaponCard = (weapon: typeof allWeapons[0]) => {
     const required = getRequiredBase(weapon.name, baseWeapon);
     const tierName = tierNames[weapon.rarity.tier] || weapon.rarity.tier;
     const levelName = 'level' in weapon.rarity ? levelNames[weapon.rarity.level] : '';
+    const color = rarityColors[weapon.rarity.tier as keyof typeof rarityColors] || '#666';
 
     return (
       <div
         key={weapon.name}
-        className={`text-center p-4 bg-gray-50 rounded-lg ${hoverColor} transition-colors`}
+        className="relative overflow-hidden rounded-xl border border-gray-100 bg-white p-4 flex flex-col items-center justify-center text-center transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:border-blue-200"
+        style={{ borderColor: `${color}30` }}
       >
+        <div
+          className="absolute top-0 left-0 w-full h-1"
+          style={{ backgroundColor: color }}
+        />
+
         <img
           src={weaponImages[weapon.name].src}
           alt={weapon.name}
-          className="w-16 h-16 mx-auto mb-2 object-contain"
+          className="w-16 h-16 mx-auto mb-2 object-contain drop-shadow-sm"
         />
-        <div className="text-sm text-gray-500 mb-2">
+        <div className="text-sm font-bold text-gray-700 mb-1">
           {tierName}{levelName}
         </div>
-        <div className="text-lg font-semibold text-gray-800">
-          {required % 1 === 0 ? required.toLocaleString() : required.toFixed(2)}本
+        <div className="text-lg font-extrabold text-gray-800">
+          {required % 1 === 0 ? required.toLocaleString() : required.toFixed(2)}
+          <span className="text-xs font-normal text-gray-400 ml-1">本</span>
         </div>
       </div>
     );
   };
 
   return (
-    <div className="space-y-8">
-      {/* 基準武器選択 */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <label className="font-medium text-gray-700">基準武器:</label>
-          <select
-            value={baseWeapon}
-            onChange={(e) => setBaseWeapon(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          >
-            {baseWeaponOptions.map(option => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <span className="text-sm text-gray-500">
-            ※ 各武器1本は基準武器何本分かを表示
-          </span>
+    <div className="space-y-6 max-w-5xl mx-auto">
+      {/* 基準武器選択 - コンパクト化 */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <label className="font-bold text-gray-700 whitespace-nowrap">基準武器:</label>
+          <div className="relative">
+            <select
+              value={baseWeapon}
+              onChange={(e) => setBaseWeapon(e.target.value)}
+              className="appearance-none px-4 py-1.5 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none font-medium bg-white text-sm"
+            >
+              {baseWeaponOptions.map(option => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+          <div className="text-xs text-gray-500">
+            ※ 各武器1本を作るのに、基準武器が何本必要かを表示します
+          </div>
         </div>
       </div>
 
-      {/* Star */}
-      <div className="bg-white rounded-xl shadow overflow-hidden">
+      {/* Star - 帯ヘッダー形式に戻す */}
+      <div className="bg-white rounded-xl shadow border border-gray-100 overflow-hidden">
         <div
-          className="px-6 py-4 border-b"
-          style={{ background: `linear-gradient(135deg, ${rarityColors.Star}20, ${rarityColors.Star}10)` }}
+          className="px-6 py-3 border-b flex items-center gap-2"
+          style={{
+            background: `linear-gradient(90deg, ${rarityColors.Star}15, #ffffff)`,
+            borderLeft: `4px solid ${rarityColors.Star}`
+          }}
         >
-          <h3 className="text-lg font-bold" style={{ color: rarityColors.Star }}>
-            Star (スター)
-          </h3>
+          <h3 className="text-lg font-bold" style={{ color: rarityColors.Star }}>Star (スター)</h3>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-6">
-          {starWeapons.map(weapon => renderWeaponCard(weapon, 'hover:bg-purple-50'))}
+        <div className="p-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4">
+            {starWeapons.map(weapon => renderWeaponCard(weapon))}
+          </div>
         </div>
       </div>
 
-      {/* Galaxy */}
-      <div className="bg-white rounded-xl shadow overflow-hidden">
+      {/* Galaxy - 帯ヘッダー形式に戻す */}
+      <div className="bg-white rounded-xl shadow border border-gray-100 overflow-hidden">
         <div
-          className="px-6 py-4 border-b"
-          style={{ background: `linear-gradient(135deg, ${rarityColors.Galaxy}20, ${rarityColors.Galaxy}10)` }}
+          className="px-6 py-3 border-b flex items-center gap-2"
+          style={{
+            background: `linear-gradient(90deg, ${rarityColors.Galaxy}15, #ffffff)`,
+            borderLeft: `4px solid ${rarityColors.Galaxy}`
+          }}
         >
-          <h3 className="text-lg font-bold" style={{ color: rarityColors.Galaxy }}>
-            Galaxy (ギャラクシー)
-          </h3>
+          <h3 className="text-lg font-bold" style={{ color: rarityColors.Galaxy }}>Galaxy (ギャラクシー)</h3>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-6">
-          {galaxyWeapons.map(weapon => renderWeaponCard(weapon, 'hover:bg-cyan-50'))}
+        <div className="p-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4">
+            {galaxyWeapons.map(weapon => renderWeaponCard(weapon))}
+          </div>
         </div>
       </div>
 
-      {/* Universe */}
-      <div className="bg-white rounded-xl shadow overflow-hidden">
+      {/* Universe - 帯ヘッダー形式に戻す */}
+      <div className="bg-white rounded-xl shadow border border-gray-100 overflow-hidden">
         <div
-          className="px-6 py-4 border-b"
-          style={{ background: `linear-gradient(135deg, ${rarityColors.Universe}20, ${rarityColors.Universe}10)` }}
+          className="px-6 py-3 border-b flex items-center gap-2"
+          style={{
+            background: `linear-gradient(90deg, ${rarityColors.Universe}15, #ffffff)`,
+            borderLeft: `4px solid ${rarityColors.Universe}`
+          }}
         >
-          <h3 className="text-lg font-bold" style={{ color: rarityColors.Universe }}>
-            Universe (ユニバース)
-          </h3>
+          <h3 className="text-lg font-bold" style={{ color: rarityColors.Universe }}>Universe (ユニバース)</h3>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-6">
-          {universeWeapons.map(weapon => renderWeaponCard(weapon, 'hover:bg-green-50'))}
+        <div className="p-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4">
+            {universeWeapons.map(weapon => renderWeaponCard(weapon))}
+          </div>
         </div>
       </div>
     </div>
