@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { analyzeExpectation } from '../utils/expectationCalculator';
 import { calculateActualProbabilities, gachaRates, getGachaRate } from '../data/gacha';
 import { getRarityShorthand, requiredL1Map } from '../data/synthesis';
@@ -129,22 +129,19 @@ const WeaponCard = ({ name, count, color, showDecimals = false }: { name: string
 export default function GachaAnalyzer() {
   const [gachaLevel, setGachaLevel] = useState<GachaLevel>(14);
   const [totalPulls, setTotalPulls] = useState<number | ''>(2000);
-  const [result, setResult] = useState<ExpectationAnalysisResult | null>(null);
   const [isRateTableOpen, setIsRateTableOpen] = useState(false);
   const [isRawResultsOpen, setIsRawResultsOpen] = useState(false);
 
-  useEffect(() => {
+  const result = useMemo(() => {
     const pulls = typeof totalPulls === 'number' ? totalPulls : 0;
     if (pulls > 0) {
-      const analysisResult = analyzeExpectation(gachaLevel, pulls, false);
-      setResult(analysisResult);
-    } else {
-      setResult(null);
+      return analyzeExpectation(gachaLevel, pulls, false);
     }
+    return null;
   }, [gachaLevel, totalPulls]);
 
   // L1換算の合計を計算
-  const calculateTotalL1Value = (): number => {
+  const totalL1Value = useMemo(() => {
     if (!result) return 0;
     let total = 0;
     for (const item of result.synthesizedResults) {
@@ -153,32 +150,15 @@ export default function GachaAnalyzer() {
       total += l1Value * item.count;
     }
     return total;
-  };
+  }, [result]);
 
   // 生の排出結果（表示用）
-  const getRawResults = (): { name: string; count: number }[] => {
+  const rawDisplayResults = useMemo(() => {
     if (!result || !result.rawResults) return [];
-    // rawResults.results は GachaResult[]
     return result.rawResults.results
       .map(item => ({
         name: getRarityShorthand(item.rarity),
         count: item.count
-      }))
-      .filter(item => item.count > 0.01) // わずかでも期待値があれば表示
-      .sort((a, b) => {
-        const valA = requiredL1Map[a.name] || 0;
-        const valB = requiredL1Map[b.name] || 0;
-        return valB - valA;
-      });
-  };
-
-  // 合成結果（小数も含めて表示）
-  const getSynthesizedResults = (): { name: string; count: number }[] => {
-    if (!result) return [];
-    return result.synthesizedResults
-      .map(item => ({
-        name: getRarityShorthand(item.rarity),
-        count: item.count // Math.floorしない
       }))
       .filter(item => item.count > 0.01)
       .sort((a, b) => {
@@ -186,11 +166,23 @@ export default function GachaAnalyzer() {
         const valB = requiredL1Map[b.name] || 0;
         return valB - valA;
       });
-  };
+  }, [result]);
 
-  const totalL1Value = calculateTotalL1Value();
-  const rawDisplayResults = getRawResults();
-  const synthesizedDisplayResults = getSynthesizedResults();
+  // 合成結果（小数も含めて表示）
+  const synthesizedDisplayResults = useMemo(() => {
+    if (!result) return [];
+    return result.synthesizedResults
+      .map(item => ({
+        name: getRarityShorthand(item.rarity),
+        count: item.count
+      }))
+      .filter(item => item.count > 0.01)
+      .sort((a, b) => {
+        const valA = requiredL1Map[a.name] || 0;
+        const valB = requiredL1Map[b.name] || 0;
+        return valB - valA;
+      });
+  }, [result]);
 
   // 現在のガチャ確率設定を取得
   const currentRate = getGachaRate(gachaLevel);
