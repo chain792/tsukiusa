@@ -1,40 +1,11 @@
 import { useState } from 'react';
-import { allWeapons, rarityColors } from '../data/weapons';
-import { requiredL1Map } from '../data/synthesis';
-
-import L4Image from '../assets/L4.png';
-import L3Image from '../assets/L3.png';
-import L2Image from '../assets/L2.png';
-import L1Image from '../assets/L1.png';
-import S4Image from '../assets/S4.png';
-import S3Image from '../assets/S3.png';
-import S2Image from '../assets/S2.png';
-import S1Image from '../assets/S1.png';
-import G4Image from '../assets/G4.png';
-import G3Image from '../assets/G3.png';
-import G2Image from '../assets/G2.png';
-import G1Image from '../assets/G1.png';
-import U4Image from '../assets/U4.png';
-
-const weaponImages: Record<string, ImageMetadata> = {
-  L4: L4Image, L3: L3Image, L2: L2Image, L1: L1Image,
-  S4: S4Image, S3: S3Image, S2: S2Image, S1: S1Image,
-  G4: G4Image, G3: G3Image, G2: G2Image, G1: G1Image,
-  U4: U4Image
-};
-
-const levelNames: Record<number, string> = {
-  4: '下級',
-  3: '中級',
-  2: '上級',
-  1: '最上級'
-};
-
-const tierNames: Record<string, string> = {
-  Star: 'スター',
-  Galaxy: 'ギャラクシー',
-  Universe: 'ユニバース'
-};
+import {
+  weaponImages,
+  allWeapons,
+  requiredL1Map,
+  rarityColors,
+  getWeaponDisplayName,
+} from '../lib/weapons';
 
 // 基準武器の選択肢
 const baseWeaponOptions = [
@@ -66,9 +37,8 @@ export default function WeaponCatalog() {
 
   const renderWeaponCard = (weapon: typeof allWeapons[0]) => {
     const required = getRequiredBase(weapon.name, baseWeapon);
-    const tierName = tierNames[weapon.rarity.tier] || weapon.rarity.tier;
-    const levelName = 'level' in weapon.rarity ? levelNames[weapon.rarity.level] : '';
-    const color = rarityColors[weapon.rarity.tier as keyof typeof rarityColors] || '#666';
+    const displayName = getWeaponDisplayName(weapon);
+    const color = rarityColors[weapon.rarity.tier] || '#666';
 
     return (
       <div
@@ -87,7 +57,7 @@ export default function WeaponCatalog() {
           className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-2 object-contain drop-shadow-sm"
         />
         <div className="text-xs md:text-sm font-bold text-gray-700 mb-1">
-          {tierName}{levelName}
+          {displayName}
         </div>
         <div className="text-base md:text-lg font-extrabold text-gray-800">
           {required % 1 === 0 ? required.toLocaleString() : required.toFixed(2)}

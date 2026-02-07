@@ -1,16 +1,6 @@
 import type { WeaponInfo, WeaponRarity } from '../types';
 import { getRequiredL1 } from './synthesis';
-
-// レア度カラーパレット
-export const rarityColors: Record<string, string> = {
-  Normal: '#6B7280',   // グレー
-  Rare: '#3B82F6',     // 青
-  Epic: '#8B5CF6',     // 紫
-  Legend: '#F59E0B',   // オレンジ
-  Star: '#A855F7',     // 紫明
-  Galaxy: '#06B6D4',   // シアン
-  Universe: '#22C55E'  // 緑
-};
+import { rarityColors } from '../lib/weapons/constants';
 
 // 全ての武器レア度リスト（内部使用）
 const allWeaponRarities: WeaponRarity[] = [

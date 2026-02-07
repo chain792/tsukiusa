@@ -1,60 +1,15 @@
 import { useState, useMemo } from 'react';
 import { analyzeExpectation } from '../utils/expectationCalculator';
 import { calculateActualProbabilities, gachaRates, getGachaRate } from '../data/gacha';
-import { getRarityShorthand, requiredL1Map } from '../data/synthesis';
-import { rarityColors } from '../data/weapons';
-import type { GachaLevel, ExpectationAnalysisResult } from '../types';
-
-import L4Image from '../assets/L4.png';
-import L3Image from '../assets/L3.png';
-import L2Image from '../assets/L2.png';
-import L1Image from '../assets/L1.png';
-import S4Image from '../assets/S4.png';
-import S3Image from '../assets/S3.png';
-import S2Image from '../assets/S2.png';
-import S1Image from '../assets/S1.png';
-import G4Image from '../assets/G4.png';
-import G3Image from '../assets/G3.png';
-import G2Image from '../assets/G2.png';
-import G1Image from '../assets/G1.png';
-import U4Image from '../assets/U4.png';
-
-const weaponImages: Record<string, ImageMetadata> = {
-  L4: L4Image, L3: L3Image, L2: L2Image, L1: L1Image,
-  S4: S4Image, S3: S3Image, S2: S2Image, S1: S1Image,
-  G4: G4Image, G3: G3Image, G2: G2Image, G1: G1Image,
-  U4: U4Image
-};
-
-const levelNames: Record<number, string> = {
-  4: '下級',
-  3: '中級',
-  2: '上級',
-  1: '最上級'
-};
-
-function getWeaponDisplayName(name: string): string {
-  const tier = name.charAt(0);
-  const level = parseInt(name.charAt(1));
-  const tierMap: Record<string, string> = {
-    'L': 'レジェンド',
-    'S': 'スター',
-    'G': 'ギャラクシー',
-    'U': 'ユニバース'
-  };
-  return `${tierMap[tier] || tier}${levelNames[level] || ''}`;
-}
-
-function getTierFromName(name: string): string {
-  const tier = name.charAt(0);
-  const tierMap: Record<string, string> = {
-    'L': 'Legend',
-    'S': 'Star',
-    'G': 'Galaxy',
-    'U': 'Universe'
-  };
-  return tierMap[tier] || 'Legend';
-}
+import type { GachaLevel } from '../types';
+import {
+  weaponImages,
+  requiredL1Map,
+  getRarityShorthand,
+  rarityColors,
+  getWeaponDisplayNameFromCode,
+  getTierFromCode,
+} from '../lib/weapons';
 
 // サマリー表示用のカードコンポーネント
 const SummaryCard = ({
@@ -90,7 +45,7 @@ const SummaryCard = ({
 
 // 武器表示用のカードコンポーネント
 const WeaponCard = ({ name, count, color, showDecimals = false }: { name: string, count: number, color: string, showDecimals?: boolean }) => {
-  const displayName = getWeaponDisplayName(name);
+  const displayName = getWeaponDisplayNameFromCode(name);
   const isHighRarity = ['U', 'G', 'S'].includes(name.charAt(0));
   const image = weaponImages[name];
 
@@ -297,7 +252,7 @@ export default function GachaAnalyzer() {
               {synthesizedDisplayResults.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
                   {synthesizedDisplayResults.map((item) => {
-                    const tier = getTierFromName(item.name);
+                    const tier = getTierFromCode(item.name);
                     const color = rarityColors[tier];
                     return (
                       <WeaponCard
@@ -337,7 +292,7 @@ export default function GachaAnalyzer() {
                 {rawDisplayResults.length > 0 ? (
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
                     {rawDisplayResults.map((item) => {
-                      const tier = getTierFromName(item.name);
+                      const tier = getTierFromCode(item.name);
                       const color = rarityColors[tier];
                       return (
                         <WeaponCard
@@ -387,7 +342,7 @@ export default function GachaAnalyzer() {
                       const actualProb = currentRate.legendRate * ratio;
                       return (
                         <div key={name} className="flex justify-between items-center py-1 border-b border-gray-50 last:border-0">
-                          <span className="font-bold text-gray-600 text-xs md:text-sm">{getWeaponDisplayName(name)}</span>
+                          <span className="font-bold text-gray-600 text-xs md:text-sm">{getWeaponDisplayNameFromCode(name)}</span>
                           <div className="text-right">
                             <span className="font-bold text-gray-800 text-xs md:text-sm">{(actualProb * 100).toFixed(2)}%</span>
                             <span className="text-gray-400 text-[10px] ml-1">({(ratio * 100).toFixed(0)}%)</span>
@@ -410,7 +365,7 @@ export default function GachaAnalyzer() {
                         const actualProb = currentRate.starRate! * ratio;
                         return (
                           <div key={name} className="flex justify-between items-center py-1 border-b border-gray-50 last:border-0">
-                            <span className="font-bold text-gray-600 text-xs md:text-sm">{getWeaponDisplayName(name)}</span>
+                            <span className="font-bold text-gray-600 text-xs md:text-sm">{getWeaponDisplayNameFromCode(name)}</span>
                             <div className="text-right">
                               <span className="font-bold text-gray-800 text-xs md:text-sm">{(actualProb * 100).toFixed(4)}%</span>
                               <span className="text-gray-400 text-[10px] ml-1">({(ratio * 100).toFixed(0)}%)</span>
