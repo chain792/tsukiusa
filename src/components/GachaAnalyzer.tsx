@@ -89,7 +89,7 @@ const SummaryCard = ({
 };
 
 // 武器表示用のカードコンポーネント
-const WeaponCard = ({ name, count, color }: { name: string, count: number, color: string }) => {
+const WeaponCard = ({ name, count, color, showDecimals = false }: { name: string, count: number, color: string, showDecimals?: boolean }) => {
   const displayName = getWeaponDisplayName(name);
   const isHighRarity = ['U', 'G', 'S'].includes(name.charAt(0));
   const image = weaponImages[name];
@@ -116,7 +116,10 @@ const WeaponCard = ({ name, count, color }: { name: string, count: number, color
         {displayName}
       </div>
       <div className="text-lg md:text-xl font-extrabold" style={{ color }}>
-        {count.toLocaleString()}
+        {showDecimals
+          ? count.toLocaleString(undefined, { maximumFractionDigits: 2 })
+          : Math.floor(count).toLocaleString()
+        }
         <span className="text-[10px] md:text-xs font-normal ml-1 text-gray-500">本</span>
       </div>
     </div>
@@ -128,6 +131,7 @@ export default function GachaAnalyzer() {
   const [totalPulls, setTotalPulls] = useState<number | ''>(2000);
   const [result, setResult] = useState<ExpectationAnalysisResult | null>(null);
   const [isRateTableOpen, setIsRateTableOpen] = useState(false);
+  const [isRawResultsOpen, setIsRawResultsOpen] = useState(false);
 
   useEffect(() => {
     const pulls = typeof totalPulls === 'number' ? totalPulls : 0;
@@ -151,17 +155,33 @@ export default function GachaAnalyzer() {
     return total;
   };
 
-  // 合成結果を整数で取得（余りも含む）
-  const getIntegerResults = (): { name: string; count: number }[] => {
+  // 生の排出結果（表示用）
+  const getRawResults = (): { name: string; count: number }[] => {
+    if (!result || !result.rawResults) return [];
+    // rawResults.results は GachaResult[]
+    return result.rawResults.results
+      .map(item => ({
+        name: getRarityShorthand(item.rarity),
+        count: item.count
+      }))
+      .filter(item => item.count > 0.01) // わずかでも期待値があれば表示
+      .sort((a, b) => {
+        const valA = requiredL1Map[a.name] || 0;
+        const valB = requiredL1Map[b.name] || 0;
+        return valB - valA;
+      });
+  };
+
+  // 合成結果（小数も含めて表示）
+  const getSynthesizedResults = (): { name: string; count: number }[] => {
     if (!result) return [];
     return result.synthesizedResults
       .map(item => ({
         name: getRarityShorthand(item.rarity),
-        count: Math.floor(item.count)
+        count: item.count // Math.floorしない
       }))
-      .filter(item => item.count > 0)
+      .filter(item => item.count > 0.01)
       .sort((a, b) => {
-        // L1換算値で降順ソート
         const valA = requiredL1Map[a.name] || 0;
         const valB = requiredL1Map[b.name] || 0;
         return valB - valA;
@@ -169,12 +189,8 @@ export default function GachaAnalyzer() {
   };
 
   const totalL1Value = calculateTotalL1Value();
-  const integerResults = getIntegerResults();
-
-  // 最高レアリティの取得
-  const bestWeapon = integerResults.length > 0 ? integerResults[0] : null;
-  const bestWeaponTier = bestWeapon ? getTierFromName(bestWeapon.name) : 'Legend';
-  const bestWeaponColor = bestWeapon ? rarityColors[bestWeaponTier] : undefined;
+  const rawDisplayResults = getRawResults();
+  const synthesizedDisplayResults = getSynthesizedResults();
 
   // 現在のガチャ確率設定を取得
   const currentRate = getGachaRate(gachaLevel);
@@ -259,7 +275,7 @@ export default function GachaAnalyzer() {
         <div className="space-y-4 md:space-y-6">
 
           {/* サマリー */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
             <SummaryCard
               title="ガチャ設定"
               value={`${numericPulls.toLocaleString()}回`}
@@ -274,15 +290,9 @@ export default function GachaAnalyzer() {
               title="レジェンド最上級換算"
               value={`${Math.floor(totalL1Value).toLocaleString()}本`}
             />
-            <SummaryCard
-              title="最高レアリティ"
-              value={bestWeapon ? getWeaponDisplayName(bestWeapon.name) : '-'}
-              subValue={bestWeapon ? `${bestWeapon.count}本` : undefined}
-              customColor={bestWeaponColor}
-            />
           </div>
 
-          {/* 合成結果詳細 */}
+          {/* 合成結果詳細 (メイン) */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="p-4 md:p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
               <h3 className="text-base md:text-lg font-bold text-gray-800">
@@ -292,9 +302,9 @@ export default function GachaAnalyzer() {
             </div>
 
             <div className="p-4 md:p-6">
-              {integerResults.length > 0 ? (
+              {synthesizedDisplayResults.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
-                  {integerResults.map((item) => {
+                  {synthesizedDisplayResults.map((item) => {
                     const tier = getTierFromName(item.name);
                     const color = rarityColors[tier];
                     return (
@@ -303,6 +313,7 @@ export default function GachaAnalyzer() {
                         name={item.name}
                         count={item.count}
                         color={color}
+                        showDecimals={true}
                       />
                     );
                   })}
@@ -313,6 +324,47 @@ export default function GachaAnalyzer() {
                 </div>
               )}
             </div>
+          </div>
+
+          {/* ガチャ排出結果（合成前・折りたたみ） */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <button
+              onClick={() => setIsRawResultsOpen(!isRawResultsOpen)}
+              className="w-full px-4 py-3 md:px-6 md:py-4 flex items-center justify-between bg-gray-50/50 hover:bg-gray-100 transition-colors text-left"
+            >
+              <h3 className="text-sm font-bold text-gray-700">
+                参考：ガチャ排出内訳 (期待値)
+              </h3>
+              <span className={`transform transition-transform duration-200 text-gray-500 ${isRawResultsOpen ? 'rotate-180' : ''}`}>
+                ▼
+              </span>
+            </button>
+
+            {isRawResultsOpen && (
+              <div className="p-4 md:p-6 border-t border-gray-100">
+                {rawDisplayResults.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+                    {rawDisplayResults.map((item) => {
+                      const tier = getTierFromName(item.name);
+                      const color = rarityColors[tier];
+                      return (
+                        <WeaponCard
+                          key={item.name}
+                          name={item.name}
+                          count={item.count}
+                          color={color}
+                          showDecimals={true}
+                        />
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                    排出情報なし
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* 確率テーブル（折りたたみ） */}
