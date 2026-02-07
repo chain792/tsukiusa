@@ -1,10 +1,8 @@
 // 武器レア度の型定義
-export type WeaponTier = 'Normal' | 'Rare' | 'Epic' | 'Legend' | 'Star' | 'Galaxy' | 'Universe';
-
-export type LegendLevel = 1 | 2 | 3 | 4;
-export type StarLevel = 1 | 2 | 3 | 4;
-export type GalaxyLevel = 1 | 2 | 3 | 4;
-export type UniverseLevel = 4;
+type LegendLevel = 1 | 2 | 3 | 4;
+type StarLevel = 1 | 2 | 3 | 4;
+type GalaxyLevel = 1 | 2 | 3 | 4;
+type UniverseLevel = 4;
 
 export type WeaponRarity =
   | { tier: 'Normal' }

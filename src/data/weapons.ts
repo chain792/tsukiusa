@@ -12,8 +12,8 @@ export const rarityColors: Record<string, string> = {
   Universe: '#22C55E'  // 緑
 };
 
-// 全ての武器レア度リスト
-export const allWeaponRarities: WeaponRarity[] = [
+// 全ての武器レア度リスト（内部使用）
+const allWeaponRarities: WeaponRarity[] = [
   // Legend
   { tier: 'Legend', level: 4 },
   { tier: 'Legend', level: 3 },
@@ -33,8 +33,8 @@ export const allWeaponRarities: WeaponRarity[] = [
   { tier: 'Universe', level: 4 }
 ];
 
-// 武器情報を生成
-export function getWeaponInfo(rarity: WeaponRarity): WeaponInfo {
+// 武器情報を生成（内部使用）
+function getWeaponInfo(rarity: WeaponRarity): WeaponInfo {
   const name = 'level' in rarity ? `${rarity.tier.charAt(0)}${rarity.level}` : rarity.tier;
   const color = rarityColors[rarity.tier];
   const requiredL1 = getRequiredL1(rarity);
