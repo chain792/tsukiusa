@@ -1,5 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import { Image } from "astro:assets";
 import headerImage from "../assets/tsukiusa_1500x500.jpeg";
 ---
 
@@ -11,8 +12,8 @@ import headerImage from "../assets/tsukiusa_1500x500.jpeg";
         class="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent z-10 transition-opacity duration-500 group-hover:opacity-90"
       >
       </div>
-      <img
-        src={headerImage.src}
+      <Image
+        src={headerImage}
         alt="月ウサギのそだてかた"
         class="w-full h-48 sm:h-64 object-cover transform transition-transform duration-700 group-hover:scale-105"
       />

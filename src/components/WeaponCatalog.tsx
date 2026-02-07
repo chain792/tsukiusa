@@ -97,9 +97,15 @@ export default function WeaponCatalog() {
     );
   };
 
+  const weaponSections = [
+    { tier: 'Star' as const, title: 'Star (スター)', weapons: starWeapons },
+    { tier: 'Galaxy' as const, title: 'Galaxy (ギャラクシー)', weapons: galaxyWeapons },
+    { tier: 'Universe' as const, title: 'Universe (ユニバース)', weapons: universeWeapons },
+  ];
+
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
-      {/* 基準武器選択 - コンパクト化 */}
+      {/* 基準武器選択 */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 px-4 py-3 md:px-6 md:py-4 flex flex-col sm:flex-row sm:items-center gap-3 md:gap-4">
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
           <label className="font-bold text-gray-700 whitespace-nowrap text-sm md:text-base">基準武器:</label>
@@ -127,59 +133,25 @@ export default function WeaponCatalog() {
         </div>
       </div>
 
-      {/* Star - 帯ヘッダー形式に戻す */}
-      <div className="bg-white rounded-xl shadow border border-gray-100 overflow-hidden">
-        <div
-          className="px-4 py-2 md:px-6 md:py-3 border-b flex items-center gap-2"
-          style={{
-            background: `linear-gradient(90deg, ${rarityColors.Star}15, #ffffff)`,
-            borderLeft: `4px solid ${rarityColors.Star}`
-          }}
-        >
-          <h3 className="text-base md:text-lg font-bold" style={{ color: rarityColors.Star }}>Star (スター)</h3>
-        </div>
-        <div className="p-4 md:p-6">
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
-            {starWeapons.map(weapon => renderWeaponCard(weapon))}
+      {/* 武器セクション */}
+      {weaponSections.map(({ tier, title, weapons }) => (
+        <div key={tier} className="bg-white rounded-xl shadow border border-gray-100 overflow-hidden">
+          <div
+            className="px-4 py-2 md:px-6 md:py-3 border-b flex items-center gap-2"
+            style={{
+              background: `linear-gradient(90deg, ${rarityColors[tier]}15, #ffffff)`,
+              borderLeft: `4px solid ${rarityColors[tier]}`
+            }}
+          >
+            <h3 className="text-base md:text-lg font-bold" style={{ color: rarityColors[tier] }}>{title}</h3>
+          </div>
+          <div className="p-4 md:p-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+              {weapons.map(weapon => renderWeaponCard(weapon))}
+            </div>
           </div>
         </div>
-      </div>
-
-      {/* Galaxy - 帯ヘッダー形式に戻す */}
-      <div className="bg-white rounded-xl shadow border border-gray-100 overflow-hidden">
-        <div
-          className="px-4 py-2 md:px-6 md:py-3 border-b flex items-center gap-2"
-          style={{
-            background: `linear-gradient(90deg, ${rarityColors.Galaxy}15, #ffffff)`,
-            borderLeft: `4px solid ${rarityColors.Galaxy}`
-          }}
-        >
-          <h3 className="text-base md:text-lg font-bold" style={{ color: rarityColors.Galaxy }}>Galaxy (ギャラクシー)</h3>
-        </div>
-        <div className="p-4 md:p-6">
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
-            {galaxyWeapons.map(weapon => renderWeaponCard(weapon))}
-          </div>
-        </div>
-      </div>
-
-      {/* Universe - 帯ヘッダー形式に戻す */}
-      <div className="bg-white rounded-xl shadow border border-gray-100 overflow-hidden">
-        <div
-          className="px-4 py-2 md:px-6 md:py-3 border-b flex items-center gap-2"
-          style={{
-            background: `linear-gradient(90deg, ${rarityColors.Universe}15, #ffffff)`,
-            borderLeft: `4px solid ${rarityColors.Universe}`
-          }}
-        >
-          <h3 className="text-base md:text-lg font-bold" style={{ color: rarityColors.Universe }}>Universe (ユニバース)</h3>
-        </div>
-        <div className="p-4 md:p-6">
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
-            {universeWeapons.map(weapon => renderWeaponCard(weapon))}
-          </div>
-        </div>
-      </div>
+      ))}
     </div>
   );
 }

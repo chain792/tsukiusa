@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { allWeapons, rarityColors } from '../data/weapons';
 import { requiredL1Map } from '../data/synthesis';
 
@@ -107,15 +107,7 @@ export default function GoalCalculator() {
     }));
   };
 
-  const [result, setResult] = useState<{
-    targetL1: number;
-    inventoryL1: number;
-    neededL1: number;
-    daysNeeded: number;
-    monthsNeeded: number;
-  } | null>(null);
-
-  useEffect(() => {
+  const result = useMemo(() => {
     const targetL1Required = (requiredL1Map[targetWeapon] || 0) * targetCount;
     let inventoryL1Total = 0;
     for (const [name, count] of Object.entries(inventory)) {
@@ -126,7 +118,7 @@ export default function GoalCalculator() {
     const daysNeeded = dailyL1 > 0 ? Math.ceil(neededL1 / dailyL1) : Infinity;
     const monthsNeeded = daysNeeded / 30;
 
-    setResult({ targetL1: targetL1Required, inventoryL1: inventoryL1Total, neededL1, daysNeeded, monthsNeeded });
+    return { targetL1: targetL1Required, inventoryL1: inventoryL1Total, neededL1, daysNeeded, monthsNeeded };
   }, [targetWeapon, targetCount, inventory, dailyL1]);
 
   const updateInventory = (name: string, count: number) => {
@@ -212,7 +204,7 @@ export default function GoalCalculator() {
           </div>
         </div>
 
-        {/* 達成予測設定エリア (別ボックスに分離) */}
+        {/* 達成予測設定エリア */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="p-4 md:p-6 border-b border-gray-100 bg-gray-50/50">
             <h2 className="text-base md:text-lg font-bold text-gray-800 flex items-center gap-2">
