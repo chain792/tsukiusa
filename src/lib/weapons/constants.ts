@@ -19,9 +19,6 @@ export const tierOrder = ['Legend', 'Star', 'Galaxy', 'Universe'] as const;
 
 // レア度カラーパレット
 export const rarityColors: Record<string, string> = {
-  Normal: '#6B7280',
-  Rare: '#3B82F6',
-  Epic: '#8B5CF6',
   Legend: '#F59E0B',
   Star: '#A855F7',
   Galaxy: '#06B6D4',

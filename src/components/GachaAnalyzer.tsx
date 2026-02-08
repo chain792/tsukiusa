@@ -1,14 +1,14 @@
 import { useState, useMemo } from 'react';
 import { analyzeExpectation } from '../utils/expectationCalculator';
-import { calculateActualProbabilities, gachaRates, getGachaRate } from '../data/gacha';
-import type { GachaLevel } from '../types';
+import type { GachaLevel, WeaponName } from '../lib/weapons';
 import {
   weaponImages,
-  requiredL1Map,
-  getRarityShorthand,
+  weapons,
   rarityColors,
-  getWeaponDisplayNameFromCode,
-  getTierFromCode,
+  getWeaponDisplayName,
+  getTier,
+  gachaRates,
+  getGachaRate,
 } from '../lib/weapons';
 
 // サマリー表示用のカードコンポーネント
@@ -22,30 +22,28 @@ const SummaryCard = ({
   value: string,
   subValue?: string,
   customColor?: string
-}) => {
-  return (
+}) => (
+  <div
+    className={`rounded-xl shadow-sm border p-3 md:p-4 flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow ${!customColor ? 'bg-white border-gray-100' : ''}`}
+    style={customColor ? {
+      backgroundColor: `${customColor}08`,
+      borderColor: `${customColor}40`,
+    } : undefined}
+  >
+    <div className="text-xs md:text-sm font-medium mb-1 opacity-80 text-gray-500">{title}</div>
     <div
-      className={`rounded-xl shadow-sm border p-3 md:p-4 flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow ${!customColor ? 'bg-white border-gray-100' : ''}`}
-      style={customColor ? {
-        backgroundColor: `${customColor}08`, // 非常に薄い背景
-        borderColor: `${customColor}40`,     // 薄いボーダー
-      } : undefined}
+      className="text-lg md:text-2xl font-bold text-gray-800 break-all"
+      style={customColor ? { color: customColor } : undefined}
     >
-      <div className={`text-xs md:text-sm font-medium mb-1 opacity-80 text-gray-500`}>{title}</div>
-      <div
-        className="text-lg md:text-2xl font-bold text-gray-800 break-all"
-        style={customColor ? { color: customColor } : undefined}
-      >
-        {value}
-      </div>
-      {subValue && <div className={`text-[10px] md:text-xs mt-1 opacity-70 text-gray-500`}>{subValue}</div>}
+      {value}
     </div>
-  );
-};
+    {subValue && <div className="text-[10px] md:text-xs mt-1 opacity-70 text-gray-500">{subValue}</div>}
+  </div>
+);
 
 // 武器表示用のカードコンポーネント
-const WeaponCard = ({ name, count, color, showDecimals = false }: { name: string, count: number, color: string, showDecimals?: boolean }) => {
-  const displayName = getWeaponDisplayNameFromCode(name);
+const WeaponCard = ({ name, count, color, showDecimals = false }: { name: WeaponName, count: number, color: string, showDecimals?: boolean }) => {
+  const displayName = getWeaponDisplayName(name);
   const isHighRarity = ['U', 'G', 'S'].includes(name.charAt(0));
   const image = weaponImages[name];
 
@@ -90,7 +88,7 @@ export default function GachaAnalyzer() {
   const result = useMemo(() => {
     const pulls = typeof totalPulls === 'number' ? totalPulls : 0;
     if (pulls > 0) {
-      return analyzeExpectation(gachaLevel, pulls, false);
+      return analyzeExpectation(gachaLevel, pulls);
     }
     return null;
   }, [gachaLevel, totalPulls]);
@@ -100,49 +98,28 @@ export default function GachaAnalyzer() {
     if (!result) return 0;
     let total = 0;
     for (const item of result.synthesizedResults) {
-      const name = getRarityShorthand(item.rarity);
-      const l1Value = requiredL1Map[name] || 0;
-      total += l1Value * item.count;
+      total += weapons[item.name].requiredL1 * item.count;
     }
     return total;
   }, [result]);
 
   // 生の排出結果（表示用）
   const rawDisplayResults = useMemo(() => {
-    if (!result || !result.rawResults) return [];
+    if (!result?.rawResults) return [];
     return result.rawResults.results
-      .map(item => ({
-        name: getRarityShorthand(item.rarity),
-        count: item.count
-      }))
       .filter(item => item.count > 0.01)
-      .sort((a, b) => {
-        const valA = requiredL1Map[a.name] || 0;
-        const valB = requiredL1Map[b.name] || 0;
-        return valB - valA;
-      });
+      .sort((a, b) => weapons[b.name].requiredL1 - weapons[a.name].requiredL1);
   }, [result]);
 
   // 合成結果（小数も含めて表示）
   const synthesizedDisplayResults = useMemo(() => {
     if (!result) return [];
     return result.synthesizedResults
-      .map(item => ({
-        name: getRarityShorthand(item.rarity),
-        count: item.count
-      }))
       .filter(item => item.count > 0.01)
-      .sort((a, b) => {
-        const valA = requiredL1Map[a.name] || 0;
-        const valB = requiredL1Map[b.name] || 0;
-        return valB - valA;
-      });
+      .sort((a, b) => weapons[b.name].requiredL1 - weapons[a.name].requiredL1);
   }, [result]);
 
-  // 現在のガチャ確率設定を取得
   const currentRate = getGachaRate(gachaLevel);
-
-  // 必要ルビー計算 (100ルビー/回)
   const numericPulls = typeof totalPulls === 'number' ? totalPulls : 0;
   const totalRubies = numericPulls * 100;
 
@@ -158,7 +135,6 @@ export default function GachaAnalyzer() {
         </div>
 
         <div className="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-          {/* ガチャレベル */}
           <div>
             <label className="block mb-2 md:mb-3 text-sm font-bold text-gray-700">
               ガチャレベル
@@ -179,7 +155,6 @@ export default function GachaAnalyzer() {
             </div>
           </div>
 
-          {/* ガチャ回数 */}
           <div>
             <label className="block mb-2 md:mb-3 text-sm font-bold text-gray-700">
               ガチャ回数
@@ -221,7 +196,6 @@ export default function GachaAnalyzer() {
       {result && numericPulls > 0 && (
         <div className="space-y-4 md:space-y-6">
 
-          {/* サマリー */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
             <SummaryCard
               title="ガチャ設定"
@@ -239,7 +213,6 @@ export default function GachaAnalyzer() {
             />
           </div>
 
-          {/* 合成結果詳細 (メイン) */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="p-4 md:p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
               <h3 className="text-base md:text-lg font-bold text-gray-800">
@@ -251,19 +224,15 @@ export default function GachaAnalyzer() {
             <div className="p-4 md:p-6">
               {synthesizedDisplayResults.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
-                  {synthesizedDisplayResults.map((item) => {
-                    const tier = getTierFromCode(item.name);
-                    const color = rarityColors[tier];
-                    return (
-                      <WeaponCard
-                        key={item.name}
-                        name={item.name}
-                        count={item.count}
-                        color={color}
-                        showDecimals={true}
-                      />
-                    );
-                  })}
+                  {synthesizedDisplayResults.map((item) => (
+                    <WeaponCard
+                      key={item.name}
+                      name={item.name}
+                      count={item.count}
+                      color={rarityColors[getTier(item.name)]}
+                      showDecimals={true}
+                    />
+                  ))}
                 </div>
               ) : (
                 <div className="text-center py-12 text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200">
@@ -273,7 +242,6 @@ export default function GachaAnalyzer() {
             </div>
           </div>
 
-          {/* ガチャ排出結果（合成前・折りたたみ） */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <button
               onClick={() => setIsRawResultsOpen(!isRawResultsOpen)}
@@ -291,19 +259,15 @@ export default function GachaAnalyzer() {
               <div className="p-4 md:p-6 border-t border-gray-100">
                 {rawDisplayResults.length > 0 ? (
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
-                    {rawDisplayResults.map((item) => {
-                      const tier = getTierFromCode(item.name);
-                      const color = rarityColors[tier];
-                      return (
-                        <WeaponCard
-                          key={item.name}
-                          name={item.name}
-                          count={item.count}
-                          color={color}
-                          showDecimals={true}
-                        />
-                      );
-                    })}
+                    {rawDisplayResults.map((item) => (
+                      <WeaponCard
+                        key={item.name}
+                        name={item.name}
+                        count={item.count}
+                        color={rarityColors[getTier(item.name)]}
+                        showDecimals={true}
+                      />
+                    ))}
                   </div>
                 ) : (
                   <div className="text-center py-8 text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200">
@@ -314,7 +278,6 @@ export default function GachaAnalyzer() {
             )}
           </div>
 
-          {/* 確率テーブル（折りたたみ） */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <button
               onClick={() => setIsRateTableOpen(!isRateTableOpen)}
@@ -330,19 +293,17 @@ export default function GachaAnalyzer() {
 
             {isRateTableOpen && currentRate && (
               <div className="p-4 md:p-6 space-y-6 border-t border-gray-100 text-sm">
-
-                {/* Legend Table */}
                 <div>
                   <div className="flex justify-between items-end mb-2 pb-2 border-b border-gray-100">
                     <span className="font-bold text-gray-700" style={{ color: rarityColors.Legend }}>Legend</span>
                     <span className="font-bold text-gray-800">{(currentRate.legendRate * 100).toFixed(0)}%</span>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1">
-                    {Object.entries(currentRate.legendDistribution).map(([name, ratio]) => {
+                    {(Object.entries(currentRate.legendDistribution) as [WeaponName, number][]).map(([name, ratio]) => {
                       const actualProb = currentRate.legendRate * ratio;
                       return (
                         <div key={name} className="flex justify-between items-center py-1 border-b border-gray-50 last:border-0">
-                          <span className="font-bold text-gray-600 text-xs md:text-sm">{getWeaponDisplayNameFromCode(name)}</span>
+                          <span className="font-bold text-gray-600 text-xs md:text-sm">{getWeaponDisplayName(name)}</span>
                           <div className="text-right">
                             <span className="font-bold text-gray-800 text-xs md:text-sm">{(actualProb * 100).toFixed(2)}%</span>
                             <span className="text-gray-400 text-[10px] ml-1">({(ratio * 100).toFixed(0)}%)</span>
@@ -353,7 +314,6 @@ export default function GachaAnalyzer() {
                   </div>
                 </div>
 
-                {/* Star Table */}
                 {(currentRate.starRate || 0) > 0 && currentRate.starDistribution && (
                   <div>
                     <div className="flex justify-between items-end mb-2 pb-2 border-b border-gray-100 mt-4">
@@ -361,11 +321,11 @@ export default function GachaAnalyzer() {
                       <span className="font-bold text-gray-800">{(currentRate.starRate! * 100).toFixed(2)}%</span>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1">
-                      {Object.entries(currentRate.starDistribution).map(([name, ratio]) => {
+                      {(Object.entries(currentRate.starDistribution) as [WeaponName, number][]).map(([name, ratio]) => {
                         const actualProb = currentRate.starRate! * ratio;
                         return (
                           <div key={name} className="flex justify-between items-center py-1 border-b border-gray-50 last:border-0">
-                            <span className="font-bold text-gray-600 text-xs md:text-sm">{getWeaponDisplayNameFromCode(name)}</span>
+                            <span className="font-bold text-gray-600 text-xs md:text-sm">{getWeaponDisplayName(name)}</span>
                             <div className="text-right">
                               <span className="font-bold text-gray-800 text-xs md:text-sm">{(actualProb * 100).toFixed(4)}%</span>
                               <span className="text-gray-400 text-[10px] ml-1">({(ratio * 100).toFixed(0)}%)</span>
@@ -376,7 +336,6 @@ export default function GachaAnalyzer() {
                     </div>
                   </div>
                 )}
-
               </div>
             )}
           </div>

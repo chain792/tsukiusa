@@ -2,13 +2,14 @@ import { useState } from 'react';
 import {
   weaponImages,
   allWeapons,
-  requiredL1Map,
+  weapons,
   rarityColors,
   getWeaponDisplayName,
+  type WeaponName,
 } from '../lib/weapons';
 
 // 基準武器の選択肢
-const baseWeaponOptions = [
+const baseWeaponOptions: { value: WeaponName; label: string }[] = [
   { value: 'L1', label: 'レジェンド最上級' },
   { value: 'S4', label: 'スター下級' },
   { value: 'S3', label: 'スター中級' },
@@ -22,23 +23,23 @@ const baseWeaponOptions = [
 ];
 
 // 基準武器に対する換算値を計算
-function getRequiredBase(weaponName: string, baseName: string): number {
-  const weaponL1 = requiredL1Map[weaponName] || 0;
-  const baseL1 = requiredL1Map[baseName] || 1;
+function getRequiredBase(weaponName: WeaponName, baseName: WeaponName): number {
+  const weaponL1 = weapons[weaponName].requiredL1;
+  const baseL1 = weapons[baseName].requiredL1;
   return weaponL1 / baseL1;
 }
 
 export default function WeaponCatalog() {
-  const [baseWeapon, setBaseWeapon] = useState('L1');
+  const [baseWeapon, setBaseWeapon] = useState<WeaponName>('L1');
 
-  const starWeapons = allWeapons.filter(w => w.rarity.tier === 'Star');
-  const galaxyWeapons = allWeapons.filter(w => w.rarity.tier === 'Galaxy');
-  const universeWeapons = allWeapons.filter(w => w.rarity.tier === 'Universe');
+  const starWeapons = allWeapons.filter(w => w.tier === 'Star');
+  const galaxyWeapons = allWeapons.filter(w => w.tier === 'Galaxy');
+  const universeWeapons = allWeapons.filter(w => w.tier === 'Universe');
 
   const renderWeaponCard = (weapon: typeof allWeapons[0]) => {
     const required = getRequiredBase(weapon.name, baseWeapon);
-    const displayName = getWeaponDisplayName(weapon);
-    const color = rarityColors[weapon.rarity.tier] || '#666';
+    const displayName = getWeaponDisplayName(weapon.name);
+    const color = rarityColors[weapon.tier] || '#666';
 
     return (
       <div
@@ -82,7 +83,7 @@ export default function WeaponCatalog() {
           <div className="relative w-full sm:w-auto">
             <select
               value={baseWeapon}
-              onChange={(e) => setBaseWeapon(e.target.value)}
+              onChange={(e) => setBaseWeapon(e.target.value as WeaponName)}
               className="appearance-none w-full sm:w-auto px-4 py-1.5 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none font-medium bg-white text-sm"
             >
               {baseWeaponOptions.map(option => (
@@ -104,7 +105,7 @@ export default function WeaponCatalog() {
       </div>
 
       {/* 武器セクション */}
-      {weaponSections.map(({ tier, title, weapons }) => (
+      {weaponSections.map(({ tier, title, weapons: sectionWeapons }) => (
         <div key={tier} className="bg-white rounded-xl shadow border border-gray-100 overflow-hidden">
           <div
             className="px-4 py-2 md:px-6 md:py-3 border-b flex items-center gap-2"
@@ -117,7 +118,7 @@ export default function WeaponCatalog() {
           </div>
           <div className="p-4 md:p-6">
             <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
-              {weapons.map(weapon => renderWeaponCard(weapon))}
+              {sectionWeapons.map(weapon => renderWeaponCard(weapon))}
             </div>
           </div>
         </div>
