@@ -292,26 +292,46 @@ export default function GoalCalculator() {
               {expandedTiers[tier] && (
                 <div className="px-4 pb-4 pt-2 md:px-6 md:pb-6 animate-fadeIn">
                   <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-                    {groupedWeapons[tier].map((weapon) => (
-                      <div key={weapon.name} className="flex items-center p-2.5 md:p-3 bg-gray-50 rounded-xl border border-gray-100 focus-within:ring-2 focus-within:ring-blue-200 transition-all">
-                        <img
-                          src={weaponImages[weapon.name].src}
-                          alt={weapon.name}
-                          className="w-10 h-10 md:w-12 md:h-12 object-contain mr-2 md:mr-3"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="text-[10px] md:text-xs text-gray-500 mb-1 truncate">{getWeaponDisplayName(weapon.name)}</div>
-                          <input
-                            type="number"
-                            value={inventory[weapon.name]}
-                            onChange={(e) => updateInventory(weapon.name, e.target.value)}
-                            min="0"
-                            placeholder="0"
-                            className="w-full px-2 py-1 md:py-1.5 border border-gray-200 rounded-md text-sm font-mono focus:border-blue-500 outline-none"
+                    {groupedWeapons[tier].map((weapon) => {
+                      const currentValue = inventory[weapon.name];
+                      const numericValue = typeof currentValue === 'number' ? currentValue : 0;
+                      return (
+                        <div key={weapon.name} className="flex items-center p-2.5 md:p-3 bg-gray-50 rounded-xl border border-gray-100 focus-within:ring-2 focus-within:ring-blue-200 transition-all">
+                          <img
+                            src={weaponImages[weapon.name].src}
+                            alt={weapon.name}
+                            className="w-10 h-10 md:w-12 md:h-12 object-contain mr-2 md:mr-3 shrink-0"
                           />
+                          <div className="flex-1 min-w-0">
+                            <div className="text-[10px] md:text-xs text-gray-500 mb-1 truncate">{getWeaponDisplayName(weapon.name)}</div>
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => updateInventory(weapon.name, String(Math.max(0, numericValue - 1)))}
+                                className="w-7 h-7 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded text-sm font-bold text-gray-600 transition-colors shrink-0"
+                              >
+                                −
+                              </button>
+                              <input
+                                type="number"
+                                value={inventory[weapon.name]}
+                                onChange={(e) => updateInventory(weapon.name, e.target.value)}
+                                min="0"
+                                placeholder="0"
+                                className="w-full px-1 py-1 md:py-1.5 border border-gray-200 rounded-md text-sm font-mono focus:border-blue-500 outline-none text-center"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => updateInventory(weapon.name, String(numericValue + 1))}
+                                className="w-7 h-7 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded text-sm font-bold text-gray-600 transition-colors shrink-0"
+                              >
+                                +
+                              </button>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
