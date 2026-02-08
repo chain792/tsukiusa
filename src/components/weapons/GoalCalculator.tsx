@@ -8,6 +8,7 @@
  * - 1日の獲得ペースから達成予定日を算出
  */
 import { useState, useMemo } from 'react';
+import congratulationsImage from '../../assets/congratulations.webp';
 import {
   weaponImages,
   allWeapons,
@@ -406,8 +407,15 @@ export default function GoalCalculator() {
               </div>
             </div>
           ) : result.neededL1 === 0 ? (
-            <div className="text-center py-3 md:py-4 bg-green-50 rounded-xl border border-green-200 text-green-700 font-bold text-sm md:text-base">
-              目標を達成しています
+            <div className="flex flex-col items-center justify-center py-6 bg-green-50 rounded-xl border border-green-200">
+              <img
+                src={congratulationsImage.src}
+                alt="Congratulations"
+                className="w-16 md:w-20 object-contain mb-4"
+              />
+              <div className="text-green-700 font-bold text-sm md:text-base">
+                目標を達成しています！
+              </div>
             </div>
           ) : (
             <div className="text-center py-3 md:py-4 bg-gray-50 rounded-xl border border-gray-200 text-gray-500 text-xs md:text-sm">
