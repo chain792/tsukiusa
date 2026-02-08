@@ -3,10 +3,23 @@ import "../styles/global.css";
 
 interface Props {
   title: string;
+  description?: string;
 }
 
-const { title } = Astro.props;
+const { title, description } = Astro.props;
 const currentPath = Astro.url.pathname;
+
+// SEO関連の定数
+const siteName = "月ウサギのそだてかた 攻略";
+const defaultDescription =
+  "月ウサギのそだてかた - 武器合成の計画とガチャ分析ができる非公式ファン攻略サイト";
+const pageDescription = description || defaultDescription;
+const fullTitle = `${title} | ${siteName}`;
+const canonicalUrl = new URL(currentPath, Astro.site).href;
+const ogImageUrl = new URL("/og-image.jpeg", Astro.site).href;
+
+// GA4測定ID（TODO: 実際のIDに置き換えてください）
+const GA_MEASUREMENT_ID = "G-M9EMKXS84R";
 ---
 
 <!doctype html>
@@ -14,11 +27,38 @@ const currentPath = Astro.url.pathname;
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{title} | 月ウサギのそだてかた 攻略</title>
-    <meta
-      name="description"
-      content="月ウサギのそだてかた - 武器合成とガチャ分析ツール"
-    />
+    <title>{fullTitle}</title>
+    <meta name="description" content={pageDescription} />
+    <link rel="canonical" href={canonicalUrl} />
+
+    <!-- OGP (Open Graph Protocol) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={pageDescription} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:site_name" content={siteName} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:locale" content="ja_JP" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={pageDescription} />
+    <meta name="twitter:image" content={ogImageUrl} />
+
+    <!-- Google Analytics (GA4) -->
+    <script
+      async
+      src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+    ></script>
+    <script define:vars={{ GA_MEASUREMENT_ID }}>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+      gtag("config", GA_MEASUREMENT_ID);
+    </script>
   </head>
   <body class="bg-gray-50 text-gray-900">
     <div class="flex min-h-screen flex-col md:flex-row">
@@ -26,7 +66,11 @@ const currentPath = Astro.url.pathname;
       <header
         class="bg-white border-b border-gray-200 p-4 flex items-center justify-between md:hidden sticky top-0 z-30"
       >
-        <a href="/" class="text-lg font-bold text-gray-800 hover:text-blue-600 transition-colors">月ウサ攻略</a>
+        <a
+          href="/"
+          class="text-lg font-bold text-gray-800 hover:text-blue-600 transition-colors"
+          >月ウサ攻略</a
+        >
         <button
           id="menu-toggle"
           class="p-2 rounded-md hover:bg-gray-100 text-gray-600 focus:outline-none"
@@ -125,7 +169,8 @@ const currentPath = Astro.url.pathname;
               <a
                 href="/weapons/goal"
                 class={`block px-4 py-2 rounded-md transition-colors ${
-                  currentPath === "/weapons/goal" || currentPath === "/weapons/goal/"
+                  currentPath === "/weapons/goal" ||
+                  currentPath === "/weapons/goal/"
                     ? "bg-blue-50 text-blue-700 font-medium"
                     : "text-gray-700 hover:bg-gray-100"
                 }`}
@@ -137,7 +182,8 @@ const currentPath = Astro.url.pathname;
               <a
                 href="/weapons/gacha"
                 class={`block px-4 py-2 rounded-md transition-colors ${
-                  currentPath === "/weapons/gacha" || currentPath === "/weapons/gacha/"
+                  currentPath === "/weapons/gacha" ||
+                  currentPath === "/weapons/gacha/"
                     ? "bg-blue-50 text-blue-700 font-medium"
                     : "text-gray-700 hover:bg-gray-100"
                 }`}
