@@ -35,19 +35,23 @@ const groupedWeapons: Record<string, typeof allWeapons> = {
 };
 
 export default function GoalCalculator() {
-  // 目標設定
+  // 目標設定（空入力を許可するため number | '' 型）
   const [targetWeapon, setTargetWeapon] = useState<WeaponName>('U4');
-  const [targetCount, setTargetCount] = useState<number>(1);
+  const [targetCount, setTargetCount] = useState<number | ''>(1);
 
-  // 所持武器（全武器を0本で初期化）
-  const [inventory, setInventory] = useState<Record<WeaponName, number>>(() => {
-    const initial = {} as Record<WeaponName, number>;
-    allWeapons.forEach(w => initial[w.name] = 0);
+  // 所持武器（空入力を許可、初期値は空文字）
+  const [inventory, setInventory] = useState<Record<WeaponName, number | ''>>(() => {
+    const initial = {} as Record<WeaponName, number | ''>;
+    allWeapons.forEach(w => initial[w.name] = '');
     return initial;
   });
 
-  // 1日の獲得ペース（レジェンド最上級換算）
-  const [dailyL1, setDailyL1] = useState<number>(9);
+  // 1日の獲得ペース（空入力を許可）
+  const [dailyL1, setDailyL1] = useState<number | ''>(9);
+
+  // 数値として取得（空文字は0として扱う）
+  const numericTargetCount = typeof targetCount === 'number' ? targetCount : 0;
+  const numericDailyL1 = typeof dailyL1 === 'number' ? dailyL1 : 0;
 
   // ティア別の折りたたみ状態
   const [expandedTiers, setExpandedTiers] = useState<Record<string, boolean>>({
@@ -64,25 +68,30 @@ export default function GoalCalculator() {
   // 必要数・所持数・不足数・達成日数を計算
   const result = useMemo(() => {
     // 目標達成に必要なL1換算値
-    const targetL1Required = weapons[targetWeapon].requiredL1 * targetCount;
+    const targetL1Required = weapons[targetWeapon].requiredL1 * numericTargetCount;
 
     // 所持武器のL1換算合計
     let inventoryL1Total = 0;
     for (const [name, count] of Object.entries(inventory)) {
       if (isWeaponName(name)) {
-        inventoryL1Total += weapons[name].requiredL1 * count;
+        const numericCount = typeof count === 'number' ? count : 0;
+        inventoryL1Total += weapons[name].requiredL1 * numericCount;
       }
     }
 
     // 不足数と達成日数
     const neededL1 = Math.max(0, targetL1Required - inventoryL1Total);
-    const daysNeeded = dailyL1 > 0 ? Math.ceil(neededL1 / dailyL1) : Infinity;
+    const daysNeeded = numericDailyL1 > 0 ? Math.ceil(neededL1 / numericDailyL1) : Infinity;
 
     return { targetL1: targetL1Required, inventoryL1: inventoryL1Total, neededL1, daysNeeded };
-  }, [targetWeapon, targetCount, inventory, dailyL1]);
+  }, [targetWeapon, numericTargetCount, inventory, numericDailyL1]);
 
-  const updateInventory = (name: WeaponName, count: number) => {
-    setInventory(prev => ({ ...prev, [name]: Math.max(0, count) }));
+  // 所持武器の更新（空入力許可）
+  const updateInventory = (name: WeaponName, value: string) => {
+    setInventory(prev => ({
+      ...prev,
+      [name]: value === '' ? '' : Math.max(0, Number(value))
+    }));
   };
 
   const targetWeaponObject = allWeapons.find(w => w.name === targetWeapon);
@@ -125,15 +134,34 @@ export default function GoalCalculator() {
 
               <div>
                 <label className="block text-xs md:text-sm font-bold text-gray-700 mb-2">目標本数</label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    value={targetCount}
-                    onChange={(e) => setTargetCount(Math.max(1, Number(e.target.value)))}
-                    min="1"
-                    className="w-full pl-3 pr-8 py-2 md:pl-4 md:pr-10 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none text-base md:text-lg font-mono"
-                  />
-                  <span className="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 text-gray-400 font-medium text-xs md:text-base">本</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setTargetCount(Math.max(1, numericTargetCount - 1))}
+                    className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-lg text-xl font-bold text-gray-600 transition-colors"
+                  >
+                    −
+                  </button>
+                  <div className="relative flex-1">
+                    <input
+                      type="number"
+                      value={targetCount}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setTargetCount(val === '' ? '' : Math.max(1, Number(val)));
+                      }}
+                      min="1"
+                      className="w-full pl-3 pr-8 py-2 md:pl-4 md:pr-10 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none text-base md:text-lg font-mono text-center"
+                    />
+                    <span className="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 text-gray-400 font-medium text-xs md:text-base">本</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setTargetCount(numericTargetCount + 1)}
+                    className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-lg text-xl font-bold text-gray-600 transition-colors"
+                  >
+                    +
+                  </button>
                 </div>
               </div>
             </div>
@@ -156,7 +184,7 @@ export default function GoalCalculator() {
                       {getWeaponDisplayName(targetWeapon)}
                     </h3>
                     <div className="inline-flex items-center px-3 py-1 bg-white border border-gray-200 rounded-full text-xs md:text-sm font-semibold text-gray-600">
-                      × {targetCount.toLocaleString()} 本
+                      × {numericTargetCount.toLocaleString()} 本
                     </div>
                   </div>
                 </>
@@ -179,15 +207,34 @@ export default function GoalCalculator() {
                 <label className="block text-xs md:text-sm font-bold text-gray-700 mb-2">
                   1日の獲得数（レジェンド最上級換算）
                 </label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    value={dailyL1}
-                    onChange={(e) => setDailyL1(Math.max(0, Number(e.target.value)))}
-                    min="0"
-                    className="w-full pl-3 pr-8 py-2 md:pl-4 md:pr-10 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-base md:text-lg font-mono"
-                  />
-                  <span className="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 text-gray-400 font-medium text-xs md:text-base">本</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setDailyL1(Math.max(0, numericDailyL1 - 1))}
+                    className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-lg text-xl font-bold text-gray-600 transition-colors"
+                  >
+                    −
+                  </button>
+                  <div className="relative flex-1">
+                    <input
+                      type="number"
+                      value={dailyL1}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setDailyL1(val === '' ? '' : Math.max(0, Number(val)));
+                      }}
+                      min="0"
+                      className="w-full pl-3 pr-8 py-2 md:pl-4 md:pr-10 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-base md:text-lg font-mono text-center"
+                    />
+                    <span className="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 text-gray-400 font-medium text-xs md:text-base">本</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setDailyL1(numericDailyL1 + 1)}
+                    className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-lg text-xl font-bold text-gray-600 transition-colors"
+                  >
+                    +
+                  </button>
                 </div>
               </div>
               <div className="text-xs text-gray-500 md:mb-3 md:flex-1">
@@ -226,7 +273,10 @@ export default function GoalCalculator() {
                   </h4>
                   {/* 入力中の武器数を表示 */}
                   {(() => {
-                    const count = groupedWeapons[tier].reduce((acc, w) => acc + (inventory[w.name] || 0), 0);
+                    const count = groupedWeapons[tier].reduce((acc, w) => {
+                      const val = inventory[w.name];
+                      return acc + (typeof val === 'number' ? val : 0);
+                    }, 0);
                     return count > 0 ? (
                       <span className="text-[10px] md:text-xs font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
                         {count}本 入力中
@@ -253,8 +303,8 @@ export default function GoalCalculator() {
                           <div className="text-[10px] md:text-xs text-gray-500 mb-1 truncate">{getWeaponDisplayName(weapon.name)}</div>
                           <input
                             type="number"
-                            value={inventory[weapon.name] || 0}
-                            onChange={(e) => updateInventory(weapon.name, Number(e.target.value))}
+                            value={inventory[weapon.name]}
+                            onChange={(e) => updateInventory(weapon.name, e.target.value)}
                             min="0"
                             placeholder="0"
                             className="w-full px-2 py-1 md:py-1.5 border border-gray-200 rounded-md text-sm font-mono focus:border-blue-500 outline-none"
@@ -324,7 +374,7 @@ export default function GoalCalculator() {
           {result.neededL1 > 0 && result.daysNeeded !== Infinity ? (
             <div className="flex flex-col sm:flex-row sm:items-center justify-between text-sm bg-blue-50/50 p-3 md:p-4 rounded-xl border border-blue-100">
               <div className="text-gray-600 mb-2 sm:mb-0 text-xs md:text-sm">
-                現在のペース（<span className="font-bold text-gray-800">{dailyL1}本/日</span>）で継続した場合の達成予定日
+                現在のペース（<span className="font-bold text-gray-800">{numericDailyL1}本/日</span>）で継続した場合の達成予定日
               </div>
               <div className="text-base md:text-lg font-bold text-blue-800 text-right sm:text-left">
                 {new Date(Date.now() + result.daysNeeded * 24 * 60 * 60 * 1000).toLocaleDateString('ja-JP', {
