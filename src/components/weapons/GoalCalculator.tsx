@@ -1,3 +1,12 @@
+/**
+ * 武器目標計算機
+ *
+ * 目標の武器を作成するために必要な素材と達成予定日を計算する。
+ * - 目標武器と本数の設定
+ * - 現在の所持武器の入力
+ * - レジェンド最上級換算での必要数計算
+ * - 1日の獲得ペースから達成予定日を算出
+ */
 import { useState, useMemo } from 'react';
 import {
   weaponImages,
@@ -9,14 +18,15 @@ import {
   getWeaponDisplayName,
   isWeaponName,
   type WeaponName,
-} from '../lib/weapons';
+} from '../../lib/weapons';
+import { SummaryCard } from '../ui';
 
-// 目標用の選択肢（レジェンド最上級以上のみ）
+// 目標武器の選択肢（レジェンド最上級以上のみ）
 const targetWeaponOptions = allWeapons.filter(w =>
   !(w.tier === 'Legend' && w.level > 1)
 );
 
-// インベントリ用のグルーピング
+// 所持武器入力用のティア別グループ
 const groupedWeapons: Record<string, typeof allWeapons> = {
   Legend: allWeapons.filter(w => w.tier === 'Legend'),
   Star: allWeapons.filter(w => w.tier === 'Star'),
@@ -24,36 +34,22 @@ const groupedWeapons: Record<string, typeof allWeapons> = {
   Universe: allWeapons.filter(w => w.tier === 'Universe'),
 };
 
-const SummaryCard = ({
-  title,
-  value,
-  subValue,
-  highlight = false,
-  colorClass = 'text-gray-800'
-}: {
-  title: string,
-  value: string,
-  subValue?: string,
-  highlight?: boolean,
-  colorClass?: string
-}) => (
-  <div className={`bg-white rounded-xl shadow-sm border p-3 md:p-4 flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow ${highlight ? 'border-blue-200 bg-blue-50' : 'border-gray-100'}`}>
-    <div className="text-gray-500 text-xs md:text-sm font-medium mb-1">{title}</div>
-    <div className={`text-lg md:text-2xl font-bold ${colorClass} break-all`}>{value}</div>
-    {subValue && <div className="text-[10px] md:text-xs text-gray-500 mt-1">{subValue}</div>}
-  </div>
-);
-
 export default function GoalCalculator() {
+  // 目標設定
   const [targetWeapon, setTargetWeapon] = useState<WeaponName>('U4');
   const [targetCount, setTargetCount] = useState<number>(1);
+
+  // 所持武器（全武器を0本で初期化）
   const [inventory, setInventory] = useState<Record<WeaponName, number>>(() => {
     const initial = {} as Record<WeaponName, number>;
     allWeapons.forEach(w => initial[w.name] = 0);
     return initial;
   });
+
+  // 1日の獲得ペース（レジェンド最上級換算）
   const [dailyL1, setDailyL1] = useState<number>(9);
 
+  // ティア別の折りたたみ状態
   const [expandedTiers, setExpandedTiers] = useState<Record<string, boolean>>({
     Legend: false,
     Star: false,
@@ -65,14 +61,20 @@ export default function GoalCalculator() {
     setExpandedTiers(prev => ({ ...prev, [tier]: !prev[tier] }));
   };
 
+  // 必要数・所持数・不足数・達成日数を計算
   const result = useMemo(() => {
+    // 目標達成に必要なL1換算値
     const targetL1Required = weapons[targetWeapon].requiredL1 * targetCount;
+
+    // 所持武器のL1換算合計
     let inventoryL1Total = 0;
     for (const [name, count] of Object.entries(inventory)) {
       if (isWeaponName(name)) {
         inventoryL1Total += weapons[name].requiredL1 * count;
       }
     }
+
+    // 不足数と達成日数
     const neededL1 = Math.max(0, targetL1Required - inventoryL1Total);
     const daysNeeded = dailyL1 > 0 ? Math.ceil(neededL1 / dailyL1) : Infinity;
 
@@ -85,15 +87,16 @@ export default function GoalCalculator() {
 
   const targetWeaponObject = allWeapons.find(w => w.name === targetWeapon);
   const targetImage = weaponImages[targetWeapon];
+
+  // 進捗パーセント（0-100）
   const progressPercent = result.targetL1 > 0
     ? Math.min(100, Math.round((result.inventoryL1 / result.targetL1) * 100))
     : 0;
 
   return (
     <div className="space-y-6 md:space-y-8 max-w-5xl mx-auto">
-
       <div className="grid grid-cols-1 gap-6 md:gap-8">
-        {/* 目標設定エリア */}
+        {/* ===== 目標設定エリア ===== */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="p-4 md:p-6 border-b border-gray-100 bg-gray-50/50">
             <h2 className="text-base md:text-lg font-bold text-gray-800 flex items-center gap-2">
@@ -103,6 +106,7 @@ export default function GoalCalculator() {
           </div>
 
           <div className="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 items-start">
+            {/* 武器・本数選択 */}
             <div className="space-y-4 md:space-y-6">
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">目標の武器</label>
@@ -134,6 +138,7 @@ export default function GoalCalculator() {
               </div>
             </div>
 
+            {/* 目標武器プレビュー */}
             <div className="flex flex-col items-center justify-center p-4 md:p-6 bg-gray-50 rounded-xl border border-dashed border-gray-200 h-full min-h-[160px] md:min-h-[200px]">
               {targetWeaponObject && targetImage && (
                 <>
@@ -160,7 +165,7 @@ export default function GoalCalculator() {
           </div>
         </div>
 
-        {/* 達成予測設定エリア */}
+        {/* ===== 達成予測設定エリア ===== */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="p-4 md:p-6 border-b border-gray-100 bg-gray-50/50">
             <h2 className="text-base md:text-lg font-bold text-gray-800 flex items-center gap-2">
@@ -194,7 +199,7 @@ export default function GoalCalculator() {
         </div>
       </div>
 
-      {/* 手持ち武器入力エリア */}
+      {/* ===== 所持武器入力エリア ===== */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-4 md:p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
           <h2 className="text-base md:text-lg font-bold text-gray-800 flex items-center gap-2">
@@ -206,6 +211,7 @@ export default function GoalCalculator() {
           </span>
         </div>
 
+        {/* ティア別の折りたたみ入力フォーム */}
         <div className="divide-y divide-gray-100">
           {tierOrder.map((tier) => (
             <div key={tier} className="bg-white">
@@ -218,6 +224,7 @@ export default function GoalCalculator() {
                   <h4 className="font-bold text-gray-700 text-sm md:text-base" style={{ color: rarityColors[tier] }}>
                     {tierNames[tier]} Tier
                   </h4>
+                  {/* 入力中の武器数を表示 */}
                   {(() => {
                     const count = groupedWeapons[tier].reduce((acc, w) => acc + (inventory[w.name] || 0), 0);
                     return count > 0 ? (
@@ -263,36 +270,38 @@ export default function GoalCalculator() {
         </div>
       </div>
 
-      {/* 計算結果エリア */}
+      {/* ===== 計算結果エリア ===== */}
       <div className="space-y-4 md:space-y-6">
+        {/* サマリーカード */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           <SummaryCard
             title="必要総数"
             value={`${result.targetL1.toLocaleString()}`}
             subValue="レジェンド最上級換算"
-            colorClass="text-blue-700"
+            color="#1d4ed8"
             highlight={true}
           />
           <SummaryCard
             title="所持数"
             value={`${result.inventoryL1.toLocaleString()}`}
             subValue="レジェンド最上級換算"
-            colorClass="text-green-600"
+            color="#16a34a"
           />
           <SummaryCard
             title="不足数"
             value={`${result.neededL1.toLocaleString()}`}
             subValue="レジェンド最上級換算"
-            colorClass="text-orange-600"
+            color="#ea580c"
           />
           <SummaryCard
             title="達成予定"
             value={result.daysNeeded === Infinity ? '未定' : result.neededL1 === 0 ? '達成' : `${result.daysNeeded.toLocaleString()}日`}
             subValue={result.daysNeeded !== Infinity && result.neededL1 > 0 ? `約 ${(result.daysNeeded / 30).toFixed(1)}ヶ月` : undefined}
-            colorClass="text-purple-600"
+            color="#9333ea"
           />
         </div>
 
+        {/* 進捗バー */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-6">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-bold text-gray-800 text-sm md:text-base">目標達成状況</h3>
@@ -311,6 +320,7 @@ export default function GoalCalculator() {
             </div>
           </div>
 
+          {/* 達成予定日表示 */}
           {result.neededL1 > 0 && result.daysNeeded !== Infinity ? (
             <div className="flex flex-col sm:flex-row sm:items-center justify-between text-sm bg-blue-50/50 p-3 md:p-4 rounded-xl border border-blue-100">
               <div className="text-gray-600 mb-2 sm:mb-0 text-xs md:text-sm">

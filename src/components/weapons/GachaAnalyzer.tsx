@@ -1,90 +1,33 @@
+/**
+ * 武器ガチャシミュレーター
+ *
+ * ガチャレベルと回数を指定して、獲得武器の期待値を計算する。
+ * - 排出確率に基づく期待値計算
+ * - 全武器を合成した場合の最終結果を表示
+ * - 排出確率の詳細表示
+ */
 import { useState, useMemo } from 'react';
-import { analyzeExpectation } from '../utils/expectationCalculator';
-import type { GachaLevel, WeaponName } from '../lib/weapons';
+import { analyzeExpectation } from '../../utils/expectationCalculator';
+import type { GachaLevel, WeaponName } from '../../lib/weapons';
 import {
-  weaponImages,
   weapons,
   rarityColors,
   getWeaponDisplayName,
-  getTier,
   gachaRates,
   getGachaRate,
-} from '../lib/weapons';
-
-// サマリー表示用のカードコンポーネント
-const SummaryCard = ({
-  title,
-  value,
-  subValue,
-  customColor
-}: {
-  title: string,
-  value: string,
-  subValue?: string,
-  customColor?: string
-}) => (
-  <div
-    className={`rounded-xl shadow-sm border p-3 md:p-4 flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow ${!customColor ? 'bg-white border-gray-100' : ''}`}
-    style={customColor ? {
-      backgroundColor: `${customColor}08`,
-      borderColor: `${customColor}40`,
-    } : undefined}
-  >
-    <div className="text-xs md:text-sm font-medium mb-1 opacity-80 text-gray-500">{title}</div>
-    <div
-      className="text-lg md:text-2xl font-bold text-gray-800 break-all"
-      style={customColor ? { color: customColor } : undefined}
-    >
-      {value}
-    </div>
-    {subValue && <div className="text-[10px] md:text-xs mt-1 opacity-70 text-gray-500">{subValue}</div>}
-  </div>
-);
-
-// 武器表示用のカードコンポーネント
-const WeaponCard = ({ name, count, color, showDecimals = false }: { name: WeaponName, count: number, color: string, showDecimals?: boolean }) => {
-  const displayName = getWeaponDisplayName(name);
-  const isHighRarity = ['U', 'G', 'S'].includes(name.charAt(0));
-  const image = weaponImages[name];
-
-  return (
-    <div
-      className={`relative overflow-hidden rounded-xl border p-3 md:p-4 flex flex-col items-center justify-center text-center transition-all duration-300 hover:scale-[1.02] hover:shadow-lg ${isHighRarity ? 'bg-gradient-to-br from-white to-gray-50' : 'bg-white'}`}
-      style={{ borderColor: `${color}30` }}
-    >
-      <div
-        className="absolute top-0 left-0 w-full h-1"
-        style={{ backgroundColor: color }}
-      />
-
-      {image && (
-        <img
-          src={image.src}
-          alt={displayName}
-          className="w-12 h-12 md:w-16 md:h-16 object-contain mb-2 drop-shadow-sm mx-auto"
-        />
-      )}
-
-      <div className="font-bold text-gray-800 mb-1 truncate w-full text-xs md:text-sm px-1">
-        {displayName}
-      </div>
-      <div className="text-lg md:text-xl font-extrabold" style={{ color }}>
-        {showDecimals
-          ? count.toLocaleString(undefined, { maximumFractionDigits: 2 })
-          : Math.floor(count).toLocaleString()
-        }
-        <span className="text-[10px] md:text-xs font-normal ml-1 text-gray-500">本</span>
-      </div>
-    </div>
-  );
-};
+} from '../../lib/weapons';
+import { SummaryCard, WeaponCard } from '../ui';
 
 export default function GachaAnalyzer() {
+  // ガチャ設定
   const [gachaLevel, setGachaLevel] = useState<GachaLevel>(14);
   const [totalPulls, setTotalPulls] = useState<number | ''>(2000);
+
+  // 折りたたみセクションの開閉状態
   const [isRateTableOpen, setIsRateTableOpen] = useState(false);
   const [isRawResultsOpen, setIsRawResultsOpen] = useState(false);
 
+  // ガチャ結果の期待値を計算（合成シミュレーション含む）
   const result = useMemo(() => {
     const pulls = typeof totalPulls === 'number' ? totalPulls : 0;
     if (pulls > 0) {
@@ -93,7 +36,7 @@ export default function GachaAnalyzer() {
     return null;
   }, [gachaLevel, totalPulls]);
 
-  // L1換算の合計を計算
+  // レジェンド最上級換算の合計値
   const totalL1Value = useMemo(() => {
     if (!result) return 0;
     let total = 0;
@@ -103,7 +46,7 @@ export default function GachaAnalyzer() {
     return total;
   }, [result]);
 
-  // 生の排出結果（表示用）
+  // 生の排出結果（合成前、高レアリティ順）
   const rawDisplayResults = useMemo(() => {
     if (!result?.rawResults) return [];
     return result.rawResults.results
@@ -111,7 +54,7 @@ export default function GachaAnalyzer() {
       .sort((a, b) => weapons[b.name].requiredL1 - weapons[a.name].requiredL1);
   }, [result]);
 
-  // 合成結果（小数も含めて表示）
+  // 合成後の最終結果（高レアリティ順）
   const synthesizedDisplayResults = useMemo(() => {
     if (!result) return [];
     return result.synthesizedResults
@@ -125,7 +68,7 @@ export default function GachaAnalyzer() {
 
   return (
     <div className="space-y-6 md:space-y-8 max-w-5xl mx-auto">
-      {/* 設定エリア */}
+      {/* ===== 設定エリア ===== */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-4 md:p-6 border-b border-gray-100 bg-gray-50/50">
           <h2 className="text-base md:text-lg font-bold text-gray-800 flex items-center gap-2">
@@ -135,6 +78,7 @@ export default function GachaAnalyzer() {
         </div>
 
         <div className="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+          {/* ガチャレベル選択 */}
           <div>
             <label className="block mb-2 md:mb-3 text-sm font-bold text-gray-700">
               ガチャレベル
@@ -155,10 +99,12 @@ export default function GachaAnalyzer() {
             </div>
           </div>
 
+          {/* ガチャ回数入力 */}
           <div>
             <label className="block mb-2 md:mb-3 text-sm font-bold text-gray-700">
               ガチャ回数
             </label>
+            {/* クイック選択ボタン */}
             <div className="flex flex-wrap gap-2 mb-3 md:mb-4">
               {[1000, 2000, 5000, 10000, 50000, 100000].map((n) => (
                 <button
@@ -173,6 +119,7 @@ export default function GachaAnalyzer() {
                 </button>
               ))}
             </div>
+            {/* カスタム入力 */}
             <div className="relative">
               <input
                 type="number"
@@ -192,10 +139,10 @@ export default function GachaAnalyzer() {
         </div>
       </div>
 
-      {/* 結果表示エリア */}
+      {/* ===== 結果表示エリア ===== */}
       {result && numericPulls > 0 && (
         <div className="space-y-4 md:space-y-6">
-
+          {/* サマリーカード */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
             <SummaryCard
               title="ガチャ設定"
@@ -213,6 +160,7 @@ export default function GachaAnalyzer() {
             />
           </div>
 
+          {/* 最終獲得武器（合成後） */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="p-4 md:p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
               <h3 className="text-base md:text-lg font-bold text-gray-800">
@@ -229,7 +177,6 @@ export default function GachaAnalyzer() {
                       key={item.name}
                       name={item.name}
                       count={item.count}
-                      color={rarityColors[getTier(item.name)]}
                       showDecimals={true}
                     />
                   ))}
@@ -242,6 +189,7 @@ export default function GachaAnalyzer() {
             </div>
           </div>
 
+          {/* 折りたたみ: ガチャ排出内訳（合成前） */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <button
               onClick={() => setIsRawResultsOpen(!isRawResultsOpen)}
@@ -264,7 +212,6 @@ export default function GachaAnalyzer() {
                         key={item.name}
                         name={item.name}
                         count={item.count}
-                        color={rarityColors[getTier(item.name)]}
                         showDecimals={true}
                       />
                     ))}
@@ -278,6 +225,7 @@ export default function GachaAnalyzer() {
             )}
           </div>
 
+          {/* 折りたたみ: 排出確率詳細 */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <button
               onClick={() => setIsRateTableOpen(!isRateTableOpen)}
@@ -293,6 +241,7 @@ export default function GachaAnalyzer() {
 
             {isRateTableOpen && currentRate && (
               <div className="p-4 md:p-6 space-y-6 border-t border-gray-100 text-sm">
+                {/* Legend排出確率 */}
                 <div>
                   <div className="flex justify-between items-end mb-2 pb-2 border-b border-gray-100">
                     <span className="font-bold text-gray-700" style={{ color: rarityColors.Legend }}>Legend</span>
@@ -314,6 +263,7 @@ export default function GachaAnalyzer() {
                   </div>
                 </div>
 
+                {/* Star排出確率（存在する場合のみ） */}
                 {(currentRate.starRate || 0) > 0 && currentRate.starDistribution && (
                   <div>
                     <div className="flex justify-between items-end mb-2 pb-2 border-b border-gray-100 mt-4">
