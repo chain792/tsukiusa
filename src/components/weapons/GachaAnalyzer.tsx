@@ -11,12 +11,58 @@ import { analyzeExpectation } from '../../utils/expectationCalculator';
 import type { GachaLevel, WeaponName } from '../../lib/weapons';
 import {
   weapons,
+  tierNames,
   rarityColors,
   getWeaponDisplayName,
   gachaRates,
   getGachaRate,
 } from '../../lib/weapons';
 import { SummaryCard, WeaponCard } from '../ui';
+
+// エピック以上のティア
+const displayTiers = new Set(['Epic', 'Legend', 'Star', 'Galaxy', 'Universe']);
+
+// パーセント表示（不要な末尾0を除去）
+function formatPercent(rate: number, maxDecimals: number): string {
+  return parseFloat((rate * 100).toFixed(maxDecimals)) + '%';
+}
+
+// ティア別の排出確率表示セクション
+function TierRateSection({
+  tierKey,
+  rate,
+  distribution,
+  decimalPlaces = 2,
+}: {
+  tierKey: string;
+  rate: number;
+  distribution: Record<string, number>;
+  decimalPlaces?: number;
+}) {
+  const tierName = tierNames[tierKey] || tierKey;
+  return (
+    <div>
+      <div className="flex justify-between items-end mb-2 pb-2 border-b border-gray-100">
+        <span className="font-bold text-gray-700" style={{ color: rarityColors[tierKey] }}>{tierName}</span>
+        <span className="font-bold text-gray-800">{formatPercent(rate, 2)}</span>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1">
+        {(Object.entries(distribution) as [WeaponName, number][]).map(([name, ratio]) => {
+          const actualProb = rate * ratio;
+          return (
+            <div key={name} className="flex justify-between items-center py-1 border-b border-gray-50 last:border-0">
+              <span className="font-bold text-gray-600 text-xs md:text-sm">{getWeaponDisplayName(name)}</span>
+              <div className="text-right">
+                <span className="font-bold text-gray-800 text-xs md:text-sm">{(actualProb * 100).toFixed(decimalPlaces)}%</span>
+                <span className="text-gray-400 text-[10px] ml-1">({(ratio * 100).toFixed(0)}%)</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 export default function GachaAnalyzer() {
   // ガチャ設定
@@ -26,7 +72,6 @@ export default function GachaAnalyzer() {
   // 折りたたみセクションの開閉状態
   const [isRateTableOpen, setIsRateTableOpen] = useState(false);
   const [isRawResultsOpen, setIsRawResultsOpen] = useState(false);
-
   // ガチャ結果の期待値を計算（合成シミュレーション含む）
   const result = useMemo(() => {
     const pulls = typeof totalPulls === 'number' ? totalPulls : 0;
@@ -46,19 +91,20 @@ export default function GachaAnalyzer() {
     return total;
   }, [result]);
 
-  // 生の排出結果（合成前、高レアリティ順）
+  // 生の排出結果（合成前、レジェンド以上のみ）
   const rawDisplayResults = useMemo(() => {
     if (!result?.rawResults) return [];
     return result.rawResults.results
-      .filter(item => item.count > 0.01)
+      .filter(item => item.count > 0.01 && displayTiers.has(weapons[item.name].tier))
       .sort((a, b) => weapons[b.name].requiredL1 - weapons[a.name].requiredL1);
   }, [result]);
 
-  // 合成後の最終結果（高レアリティ順）
+  // 合成後の最終結果（レジェンド以上のみ）
+  const legendAndAbove = new Set(['Legend', 'Star', 'Galaxy', 'Universe']);
   const synthesizedDisplayResults = useMemo(() => {
     if (!result) return [];
     return result.synthesizedResults
-      .filter(item => item.count > 0.01)
+      .filter(item => item.count > 0.01 && legendAndAbove.has(weapons[item.name].tier))
       .sort((a, b) => weapons[b.name].requiredL1 - weapons[a.name].requiredL1);
   }, [result]);
 
@@ -241,51 +287,49 @@ export default function GachaAnalyzer() {
 
             {isRateTableOpen && currentRate && (
               <div className="p-4 md:p-6 space-y-6 border-t border-gray-100 text-sm">
-                {/* Legend排出確率 */}
-                <div>
-                  <div className="flex justify-between items-end mb-2 pb-2 border-b border-gray-100">
-                    <span className="font-bold text-gray-700" style={{ color: rarityColors.Legend }}>Legend</span>
-                    <span className="font-bold text-gray-800">{(currentRate.legendRate * 100).toFixed(0)}%</span>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1">
-                    {(Object.entries(currentRate.legendDistribution) as [WeaponName, number][]).map(([name, ratio]) => {
-                      const actualProb = currentRate.legendRate * ratio;
-                      return (
-                        <div key={name} className="flex justify-between items-center py-1 border-b border-gray-50 last:border-0">
-                          <span className="font-bold text-gray-600 text-xs md:text-sm">{getWeaponDisplayName(name)}</span>
-                          <div className="text-right">
-                            <span className="font-bold text-gray-800 text-xs md:text-sm">{(actualProb * 100).toFixed(2)}%</span>
-                            <span className="text-gray-400 text-[10px] ml-1">({(ratio * 100).toFixed(0)}%)</span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Star排出確率（存在する場合のみ） */}
+                {/* スター排出確率（存在する場合のみ） */}
                 {(currentRate.starRate || 0) > 0 && currentRate.starDistribution && (
-                  <div>
-                    <div className="flex justify-between items-end mb-2 pb-2 border-b border-gray-100 mt-4">
-                      <span className="font-bold text-gray-700" style={{ color: rarityColors.Star }}>Star</span>
-                      <span className="font-bold text-gray-800">{(currentRate.starRate! * 100).toFixed(2)}%</span>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1">
-                      {(Object.entries(currentRate.starDistribution) as [WeaponName, number][]).map(([name, ratio]) => {
-                        const actualProb = currentRate.starRate! * ratio;
-                        return (
-                          <div key={name} className="flex justify-between items-center py-1 border-b border-gray-50 last:border-0">
-                            <span className="font-bold text-gray-600 text-xs md:text-sm">{getWeaponDisplayName(name)}</span>
-                            <div className="text-right">
-                              <span className="font-bold text-gray-800 text-xs md:text-sm">{(actualProb * 100).toFixed(4)}%</span>
-                              <span className="text-gray-400 text-[10px] ml-1">({(ratio * 100).toFixed(0)}%)</span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
+                  <TierRateSection
+                    tierKey="Star"
+                    rate={currentRate.starRate!}
+                    distribution={currentRate.starDistribution}
+                    decimalPlaces={4}
+                  />
                 )}
+
+                {/* レジェンド排出確率 */}
+                <TierRateSection
+                  tierKey="Legend"
+                  rate={currentRate.legendRate}
+                  distribution={currentRate.legendDistribution}
+                />
+
+                {/* エピック以下 */}
+                <TierRateSection
+                  tierKey="Epic"
+                  rate={currentRate.epicRate}
+                  distribution={currentRate.epicDistribution}
+                />
+                <TierRateSection
+                  tierKey="Unique"
+                  rate={currentRate.uniqueRate}
+                  distribution={currentRate.uniqueDistribution}
+                />
+                <TierRateSection
+                  tierKey="Rare"
+                  rate={currentRate.rareRate}
+                  distribution={currentRate.rareDistribution}
+                />
+                <TierRateSection
+                  tierKey="Magic"
+                  rate={currentRate.magicRate}
+                  distribution={currentRate.magicDistribution}
+                />
+                <TierRateSection
+                  tierKey="Normal"
+                  rate={currentRate.normalRate}
+                  distribution={currentRate.normalDistribution}
+                />
               </div>
             )}
           </div>

@@ -15,7 +15,6 @@ import {
   weapons,
   rarityColors,
   tierNames,
-  tierOrder,
   getWeaponDisplayName,
   isWeaponName,
   type WeaponName,
@@ -24,16 +23,15 @@ import { SummaryCard } from '../ui';
 
 // 目標武器の選択肢（レジェンド最上級以上のみ）
 const targetWeaponOptions = allWeapons.filter(w =>
-  !(w.tier === 'Legend' && w.level > 1)
+  ['Star', 'Galaxy', 'Universe'].includes(w.tier) || (w.tier === 'Legend' && w.level === 1)
 );
 
-// 所持武器入力用のティア別グループ
-const groupedWeapons: Record<string, typeof allWeapons> = {
-  Legend: allWeapons.filter(w => w.tier === 'Legend'),
-  Star: allWeapons.filter(w => w.tier === 'Star'),
-  Galaxy: allWeapons.filter(w => w.tier === 'Galaxy'),
-  Universe: allWeapons.filter(w => w.tier === 'Universe'),
-};
+// 所持武器入力用のティア別グループ（レジェンド以上のみ）
+const inventoryTiers = ['Legend', 'Star', 'Galaxy', 'Universe'] as const;
+const groupedWeapons: Record<string, typeof allWeapons> = {};
+for (const tier of inventoryTiers) {
+  groupedWeapons[tier] = allWeapons.filter(w => w.tier === tier);
+}
 
 export default function GoalCalculator() {
   // 目標設定（空入力を許可するため number | '' 型）
@@ -261,7 +259,7 @@ export default function GoalCalculator() {
 
         {/* ティア別の折りたたみ入力フォーム */}
         <div className="divide-y divide-gray-100">
-          {tierOrder.map((tier) => (
+          {inventoryTiers.map((tier) => (
             <div key={tier} className="bg-white">
               <button
                 onClick={() => toggleTier(tier)}

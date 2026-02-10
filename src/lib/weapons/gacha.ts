@@ -1,15 +1,36 @@
 import type { GachaRate, GachaSimulationResult, GachaLevel, WeaponName } from './types';
 import { isWeaponName } from './types';
 
+// エピック以下の共通分布（全レベル共通）
+const normalDistribution = { N4: 0.25, N3: 0.25, N2: 0.25, N1: 0.25 } as const;
+const magicRate = 0.05;
+const magicDistribution = { M4: 0.30, M3: 0.25, M2: 0.25, M1: 0.20 } as const;
+const rareRate = 0.21;
+const rareDistribution = { R4: 0.35, R3: 0.30, R2: 0.20, R1: 0.15 } as const;
+const uniqueRate = 0.45;
+const uniqueDistribution = { Unique4: 0.40, Unique3: 0.30, Unique2: 0.20, Unique1: 0.10 } as const;
+const epicRate = 0.229;
+const epicDistribution = { E4: 0.45, E3: 0.30, E2: 0.18, E1: 0.07 } as const;
+
 // ガチャ確率テーブル
 export const gachaRates: GachaRate[] = [
   {
     level: 8,
+    normalRate: 0.03, normalDistribution,
+    magicRate, magicDistribution,
+    rareRate, rareDistribution,
+    uniqueRate, uniqueDistribution,
+    epicRate, epicDistribution,
     legendRate: 0.03,
     legendDistribution: { L4: 0.5, L3: 0.3, L2: 0.15, L1: 0.05 },
   },
   {
     level: 9,
+    normalRate: 0.03, normalDistribution,
+    magicRate, magicDistribution,
+    rareRate, rareDistribution,
+    uniqueRate, uniqueDistribution,
+    epicRate, epicDistribution,
     legendRate: 0.03,
     legendDistribution: { L4: 0.5, L3: 0.3, L2: 0.15, L1: 0.05 },
     starRate: 0.0005,
@@ -17,6 +38,11 @@ export const gachaRates: GachaRate[] = [
   },
   {
     level: 10,
+    normalRate: 0.03, normalDistribution,
+    magicRate, magicDistribution,
+    rareRate, rareDistribution,
+    uniqueRate, uniqueDistribution,
+    epicRate, epicDistribution,
     legendRate: 0.03,
     legendDistribution: { L4: 0.5, L3: 0.3, L2: 0.15, L1: 0.05 },
     starRate: 0.001,
@@ -24,6 +50,11 @@ export const gachaRates: GachaRate[] = [
   },
   {
     level: 11,
+    normalRate: 0.03, normalDistribution,
+    magicRate, magicDistribution,
+    rareRate, rareDistribution,
+    uniqueRate, uniqueDistribution,
+    epicRate, epicDistribution,
     legendRate: 0.03,
     legendDistribution: { L4: 0.5, L3: 0.3, L2: 0.15, L1: 0.05 },
     starRate: 0.001,
@@ -31,6 +62,11 @@ export const gachaRates: GachaRate[] = [
   },
   {
     level: 12,
+    normalRate: 0.03, normalDistribution,
+    magicRate, magicDistribution,
+    rareRate, rareDistribution,
+    uniqueRate, uniqueDistribution,
+    epicRate, epicDistribution,
     legendRate: 0.03,
     legendDistribution: { L4: 0.5, L3: 0.3, L2: 0.15, L1: 0.05 },
     starRate: 0.001,
@@ -38,6 +74,11 @@ export const gachaRates: GachaRate[] = [
   },
   {
     level: 13,
+    normalRate: 0.0198, normalDistribution,
+    magicRate, magicDistribution,
+    rareRate, rareDistribution,
+    uniqueRate, uniqueDistribution,
+    epicRate, epicDistribution,
     legendRate: 0.04,
     legendDistribution: { L4: 0.5, L3: 0.3, L2: 0.15, L1: 0.05 },
     starRate: 0.0012,
@@ -45,6 +86,11 @@ export const gachaRates: GachaRate[] = [
   },
   {
     level: 14,
+    normalRate: 0.0194, normalDistribution,
+    magicRate, magicDistribution,
+    rareRate, rareDistribution,
+    uniqueRate, uniqueDistribution,
+    epicRate, epicDistribution,
     legendRate: 0.04,
     legendDistribution: { L4: 0.5, L3: 0.3, L2: 0.15, L1: 0.05 },
     starRate: 0.0016,
@@ -63,6 +109,36 @@ export function calculateActualProbabilities(level: GachaLevel): Partial<Record<
   if (!rate) return {};
 
   const probabilities: Partial<Record<WeaponName, number>> = {};
+
+  // ノーマル等級
+  probabilities.N4 = rate.normalRate * rate.normalDistribution.N4;
+  probabilities.N3 = rate.normalRate * rate.normalDistribution.N3;
+  probabilities.N2 = rate.normalRate * rate.normalDistribution.N2;
+  probabilities.N1 = rate.normalRate * rate.normalDistribution.N1;
+
+  // マジック等級
+  probabilities.M4 = rate.magicRate * rate.magicDistribution.M4;
+  probabilities.M3 = rate.magicRate * rate.magicDistribution.M3;
+  probabilities.M2 = rate.magicRate * rate.magicDistribution.M2;
+  probabilities.M1 = rate.magicRate * rate.magicDistribution.M1;
+
+  // レア等級
+  probabilities.R4 = rate.rareRate * rate.rareDistribution.R4;
+  probabilities.R3 = rate.rareRate * rate.rareDistribution.R3;
+  probabilities.R2 = rate.rareRate * rate.rareDistribution.R2;
+  probabilities.R1 = rate.rareRate * rate.rareDistribution.R1;
+
+  // ユニーク等級
+  probabilities.Unique4 = rate.uniqueRate * rate.uniqueDistribution.Unique4;
+  probabilities.Unique3 = rate.uniqueRate * rate.uniqueDistribution.Unique3;
+  probabilities.Unique2 = rate.uniqueRate * rate.uniqueDistribution.Unique2;
+  probabilities.Unique1 = rate.uniqueRate * rate.uniqueDistribution.Unique1;
+
+  // エピック等級
+  probabilities.E4 = rate.epicRate * rate.epicDistribution.E4;
+  probabilities.E3 = rate.epicRate * rate.epicDistribution.E3;
+  probabilities.E2 = rate.epicRate * rate.epicDistribution.E2;
+  probabilities.E1 = rate.epicRate * rate.epicDistribution.E1;
 
   // レジェンド等級
   probabilities.L4 = rate.legendRate * rate.legendDistribution.L4;

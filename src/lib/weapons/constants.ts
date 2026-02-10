@@ -8,6 +8,11 @@ export const levelNames: Record<number, string> = {
 
 // ティア名（英語 → 日本語）
 export const tierNames: Record<string, string> = {
+  Normal: 'ノーマル',
+  Magic: 'マジック',
+  Rare: 'レア',
+  Unique: 'ユニーク',
+  Epic: 'エピック',
   Legend: 'レジェンド',
   Star: 'スター',
   Galaxy: 'ギャラクシー',
@@ -15,10 +20,15 @@ export const tierNames: Record<string, string> = {
 };
 
 // ティアの順序
-export const tierOrder = ['Legend', 'Star', 'Galaxy', 'Universe'] as const;
+export const tierOrder = ['Normal', 'Magic', 'Rare', 'Unique', 'Epic', 'Legend', 'Star', 'Galaxy', 'Universe'] as const;
 
 // レア度カラーパレット
 export const rarityColors: Record<string, string> = {
+  Normal: '#9CA3AF',
+  Magic: '#3B82F6',
+  Rare: '#16A34A',
+  Unique: '#B45309',
+  Epic: '#7C3AED',
   Legend: '#F59E0B',
   Star: '#A855F7',
   Galaxy: '#06B6D4',

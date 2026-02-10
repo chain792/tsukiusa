@@ -8,6 +8,11 @@ import {
 
 // 合成順序（低レア度から高レア度へ）
 const synthesisOrder: WeaponName[] = [
+  'N4', 'N3', 'N2', 'N1',
+  'M4', 'M3', 'M2', 'M1',
+  'R4', 'R3', 'R2', 'R1',
+  'Unique4', 'Unique3', 'Unique2', 'Unique1',
+  'E4', 'E3', 'E2', 'E1',
   'L4', 'L3', 'L2', 'L1',
   'S4', 'S3', 'S2', 'S1',
   'G4', 'G3', 'G2', 'G1',
