@@ -73,39 +73,41 @@ export default function GachaAnalyzer() {
   // 折りたたみセクションの開閉状態
   const [isRateTableOpen, setIsRateTableOpen] = useState(false);
   const [isRawResultsOpen, setIsRawResultsOpen] = useState(false);
+
+  // 累積ボーナス（レジェンド最上級）の本数
+  const bonusL1Count = useMemo(() => {
+    const pulls = typeof totalPulls === 'number' ? totalPulls : 0;
+    const threshold = bonusThresholds[gachaLevel];
+    if (threshold && pulls >= threshold) {
+      return Math.floor(pulls / threshold);
+    }
+    return 0;
+  }, [gachaLevel, totalPulls]);
+
   // ガチャ結果の期待値を計算（合成シミュレーション含む）
   const result = useMemo(() => {
     const pulls = typeof totalPulls === 'number' ? totalPulls : 0;
     if (pulls > 0) {
-      return analyzeExpectation(gachaLevel, pulls);
+      return analyzeExpectation(gachaLevel, pulls, bonusL1Count);
     }
     return null;
-  }, [gachaLevel, totalPulls]);
+  }, [gachaLevel, totalPulls, bonusL1Count]);
 
   // レジェンド最上級換算の合計値（ガチャ確率分 + ボーナス分）
-  const { gachaL1Count, bonusL1Count, totalL1Count } = useMemo(() => {
+  const { gachaL1Count, totalL1Count } = useMemo(() => {
     // 1. ガチャ確率分
     let gachaTotal = 0;
-    if (result) {
-      for (const item of result.synthesizedResults) {
+    if (result?.rawResults) {
+      for (const item of result.rawResults.results) {
         gachaTotal += weapons[item.name].requiredL1 * item.count;
       }
     }
 
-    // 2. ボーナス分（ガチャ回数に応じて獲得）
-    let bonusTotal = 0;
-    const pulls = typeof totalPulls === 'number' ? totalPulls : 0;
-    const threshold = bonusThresholds[gachaLevel];
-    if (threshold && pulls >= threshold) {
-      bonusTotal = Math.floor(pulls / threshold);
-    }
-
     return {
       gachaL1Count: gachaTotal,
-      bonusL1Count: bonusTotal,
-      totalL1Count: gachaTotal + bonusTotal,
+      totalL1Count: gachaTotal + bonusL1Count,
     };
-  }, [result, gachaLevel, totalPulls]);
+  }, [result, bonusL1Count]);
 
   // 生の排出結果（合成前、レジェンド以上のみ）
   const rawDisplayResults = useMemo(() => {

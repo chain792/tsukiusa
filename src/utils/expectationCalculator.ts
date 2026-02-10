@@ -22,6 +22,7 @@ const synthesisOrder: WeaponName[] = [
 export function analyzeExpectation(
   level: GachaLevel,
   totalPulls: number,
+  bonusL1Count = 0,
 ): ExpectationAnalysisResult {
   const rawResults = simulateGachaExpectation(level, totalPulls);
 
@@ -29,6 +30,9 @@ export function analyzeExpectation(
   const inventory = new Map<WeaponName, number>();
   for (const result of rawResults.results) {
     inventory.set(result.name, result.count);
+  }
+  if (bonusL1Count > 0) {
+    inventory.set('L1', (inventory.get('L1') || 0) + bonusL1Count);
   }
 
   // 低レア度から順に合成シミュレーション
