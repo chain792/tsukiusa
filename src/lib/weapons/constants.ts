@@ -34,3 +34,14 @@ export const rarityColors: Record<string, string> = {
   Galaxy: '#06B6D4',
   Universe: '#22C55E',
 };
+
+// ガチャレベルごとのボーナス獲得（レジェンド最上級）に必要な回数
+export const bonusThresholds: Record<number, number> = {
+  8: 1200,
+  9: 1150,
+  10: 1050,
+  11: 1000,
+  12: 900,
+  13: 800,
+  14: 700,
+};

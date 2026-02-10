@@ -16,6 +16,7 @@ import {
   getWeaponDisplayName,
   gachaRates,
   getGachaRate,
+  bonusThresholds,
 } from '../../lib/weapons';
 import { SummaryCard, WeaponCard } from '../ui';
 
@@ -81,15 +82,30 @@ export default function GachaAnalyzer() {
     return null;
   }, [gachaLevel, totalPulls]);
 
-  // レジェンド最上級換算の合計値
-  const totalL1Value = useMemo(() => {
-    if (!result) return 0;
-    let total = 0;
-    for (const item of result.synthesizedResults) {
-      total += weapons[item.name].requiredL1 * item.count;
+  // レジェンド最上級換算の合計値（ガチャ確率分 + ボーナス分）
+  const { gachaL1Count, bonusL1Count, totalL1Count } = useMemo(() => {
+    // 1. ガチャ確率分
+    let gachaTotal = 0;
+    if (result) {
+      for (const item of result.synthesizedResults) {
+        gachaTotal += weapons[item.name].requiredL1 * item.count;
+      }
     }
-    return total;
-  }, [result]);
+
+    // 2. ボーナス分（ガチャ回数に応じて獲得）
+    let bonusTotal = 0;
+    const pulls = typeof totalPulls === 'number' ? totalPulls : 0;
+    const threshold = bonusThresholds[gachaLevel];
+    if (threshold && pulls >= threshold) {
+      bonusTotal = Math.floor(pulls / threshold);
+    }
+
+    return {
+      gachaL1Count: gachaTotal,
+      bonusL1Count: bonusTotal,
+      totalL1Count: gachaTotal + bonusTotal,
+    };
+  }, [result, gachaLevel, totalPulls]);
 
   // 生の排出結果（合成前、レジェンド以上のみ）
   const rawDisplayResults = useMemo(() => {
@@ -186,74 +202,73 @@ export default function GachaAnalyzer() {
       </div>
 
       {/* ===== 結果表示エリア ===== */}
-      {result && numericPulls > 0 && (
-        <div className="space-y-4 md:space-y-6">
-          {/* サマリーカード */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-            <SummaryCard
-              title="ガチャ設定"
-              value={`${numericPulls.toLocaleString()}回`}
-              subValue={`Lv.${gachaLevel}`}
-            />
-            <SummaryCard
-              title="消費ルビー"
-              value={`${Math.floor(totalRubies / 10000).toLocaleString()}万`}
-              subValue={`${totalRubies.toLocaleString()}`}
-            />
-            <SummaryCard
-              title="レジェンド最上級換算"
-              value={`${Math.floor(totalL1Value).toLocaleString()}本`}
-            />
-          </div>
+      {
+        result && numericPulls > 0 && (
+          <div className="space-y-4 md:space-y-6">
+            {/* サマリーカード */}
+            {/* 設定・コスト・換算結果（PCで1:1:2配置） */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+              <SummaryCard
+                title="ガチャ設定"
+                value={`${numericPulls.toLocaleString()}回`}
+                subValue={`Lv.${gachaLevel}`}
+              />
+              <SummaryCard
+                title="消費ルビー"
+                value={`${Math.floor(totalRubies / 10000).toLocaleString()}万`}
+                subValue={`${totalRubies.toLocaleString()}`}
+              />
 
-          {/* 最終獲得武器（合成後） */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="p-4 md:p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
-              <h3 className="text-base md:text-lg font-bold text-gray-800">
-                最終獲得武器
-                <span className="ml-2 text-xs md:text-sm font-normal text-gray-500">※全て合成した場合の期待値</span>
-              </h3>
+              {/* レジェンド最上級換算（2カラム分） */}
+              <div className="col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-3 md:p-4 flex flex-col justify-center">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 h-full">
+                  {/* メイン数値 */}
+                  <div className="flex flex-col justify-center min-w-[120px]">
+                    <h3 className="text-xs md:text-sm font-medium opacity-80 text-gray-500 mb-1">レジェンド最上級換算</h3>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-2xl md:text-3xl font-bold text-gray-800 tracking-tight">
+                        {Math.floor(totalL1Count).toLocaleString()}
+                      </span>
+                      <span className="text-xs md:text-sm font-bold text-gray-500">本</span>
+                    </div>
+                  </div>
+
+                  {/* 内訳・ボーナス表示 */}
+                  <div className="flex-1 border-t md:border-t-0 md:border-l border-gray-100 pt-3 md:pt-0 md:pl-4 flex flex-col justify-center">
+                    <div className="flex items-center gap-3 text-sm mb-2">
+                      <div className="flex flex-col items-start px-2 py-1">
+                        <span className="text-[11px] text-gray-500">ガチャ排出</span>
+                        <span className="font-bold text-gray-700">{Math.floor(gachaL1Count).toLocaleString()}</span>
+                      </div>
+                      <div className="text-gray-300 font-light">+</div>
+                      <div className="flex flex-col items-start px-2 py-1">
+                        <span className="text-[11px] text-gray-500">累積ボーナス</span>
+                        <span className="font-bold text-gray-700">{bonusL1Count.toLocaleString()}</span>
+                      </div>
+                    </div>
+
+                    {/* 説明文 */}
+                    <div className="text-[11px] text-gray-500 leading-tight">
+                      ※ 累積ボーナスは、武器ガチャを{bonusThresholds[gachaLevel]}回毎に1つ獲得できるものとして簡易的に計算しています
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div className="p-4 md:p-6">
-              {synthesizedDisplayResults.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
-                  {synthesizedDisplayResults.map((item) => (
-                    <WeaponCard
-                      key={item.name}
-                      name={item.name}
-                      count={item.count}
-                      showDecimals={true}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12 text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                  獲得できる武器はありません
-                </div>
-              )}
-            </div>
-          </div>
+            {/* 最終獲得武器（合成後） */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+              <div className="p-4 md:p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+                <h3 className="text-base md:text-lg font-bold text-gray-800">
+                  最終獲得武器
+                  <span className="ml-2 text-xs md:text-sm font-normal text-gray-500">※全て合成した場合の期待値</span>
+                </h3>
+              </div>
 
-          {/* 折りたたみ: ガチャ排出内訳（合成前） */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <button
-              onClick={() => setIsRawResultsOpen(!isRawResultsOpen)}
-              className="w-full px-4 py-3 md:px-6 md:py-4 flex items-center justify-between bg-gray-50/50 hover:bg-gray-100 transition-colors text-left"
-            >
-              <h3 className="text-sm font-bold text-gray-700">
-                参考：ガチャ排出内訳 (期待値)
-              </h3>
-              <span className={`transform transition-transform duration-200 text-gray-500 ${isRawResultsOpen ? 'rotate-180' : ''}`}>
-                ▼
-              </span>
-            </button>
-
-            {isRawResultsOpen && (
-              <div className="p-4 md:p-6 border-t border-gray-100">
-                {rawDisplayResults.length > 0 ? (
+              <div className="p-4 md:p-6">
+                {synthesizedDisplayResults.length > 0 ? (
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
-                    {rawDisplayResults.map((item) => (
+                    {synthesizedDisplayResults.map((item) => (
                       <WeaponCard
                         key={item.name}
                         name={item.name}
@@ -263,78 +278,114 @@ export default function GachaAnalyzer() {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                    排出情報なし
+                  <div className="text-center py-12 text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                    獲得できる武器はありません
                   </div>
                 )}
               </div>
-            )}
-          </div>
+            </div>
 
-          {/* 折りたたみ: 排出確率詳細 */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <button
-              onClick={() => setIsRateTableOpen(!isRateTableOpen)}
-              className="w-full px-4 py-3 md:px-6 md:py-4 flex items-center justify-between bg-gray-50/50 hover:bg-gray-100 transition-colors text-left"
-            >
-              <h3 className="text-sm font-bold text-gray-700">
-                Lv.{gachaLevel} 排出確率詳細
-              </h3>
-              <span className={`transform transition-transform duration-200 text-gray-500 ${isRateTableOpen ? 'rotate-180' : ''}`}>
-                ▼
-              </span>
-            </button>
+            {/* 折りたたみ: ガチャ排出内訳（合成前） */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+              <button
+                onClick={() => setIsRawResultsOpen(!isRawResultsOpen)}
+                className="w-full px-4 py-3 md:px-6 md:py-4 flex items-center justify-between bg-gray-50/50 hover:bg-gray-100 transition-colors text-left"
+              >
+                <h3 className="text-sm font-bold text-gray-700">
+                  参考：ガチャ排出内訳 (期待値)
+                </h3>
+                <span className={`transform transition-transform duration-200 text-gray-500 ${isRawResultsOpen ? 'rotate-180' : ''}`}>
+                  ▼
+                </span>
+              </button>
 
-            {isRateTableOpen && currentRate && (
-              <div className="p-4 md:p-6 space-y-6 border-t border-gray-100 text-sm">
-                {/* スター排出確率（存在する場合のみ） */}
-                {(currentRate.starRate || 0) > 0 && currentRate.starDistribution && (
+              {isRawResultsOpen && (
+                <div className="p-4 md:p-6 border-t border-gray-100">
+                  {rawDisplayResults.length > 0 ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+                      {rawDisplayResults.map((item) => (
+                        <WeaponCard
+                          key={item.name}
+                          name={item.name}
+                          count={item.count}
+                          showDecimals={true}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                      排出情報なし
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* 折りたたみ: 排出確率詳細 */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+              <button
+                onClick={() => setIsRateTableOpen(!isRateTableOpen)}
+                className="w-full px-4 py-3 md:px-6 md:py-4 flex items-center justify-between bg-gray-50/50 hover:bg-gray-100 transition-colors text-left"
+              >
+                <h3 className="text-sm font-bold text-gray-700">
+                  Lv.{gachaLevel} 排出確率詳細
+                </h3>
+                <span className={`transform transition-transform duration-200 text-gray-500 ${isRateTableOpen ? 'rotate-180' : ''}`}>
+                  ▼
+                </span>
+              </button>
+
+              {isRateTableOpen && currentRate && (
+                <div className="p-4 md:p-6 space-y-6 border-t border-gray-100 text-sm">
+                  {/* スター排出確率（存在する場合のみ） */}
+                  {(currentRate.starRate || 0) > 0 && currentRate.starDistribution && (
+                    <TierRateSection
+                      tierKey="Star"
+                      rate={currentRate.starRate!}
+                      distribution={currentRate.starDistribution}
+                      decimalPlaces={4}
+                    />
+                  )}
+
+                  {/* レジェンド排出確率 */}
                   <TierRateSection
-                    tierKey="Star"
-                    rate={currentRate.starRate!}
-                    distribution={currentRate.starDistribution}
-                    decimalPlaces={4}
+                    tierKey="Legend"
+                    rate={currentRate.legendRate}
+                    distribution={currentRate.legendDistribution}
                   />
-                )}
 
-                {/* レジェンド排出確率 */}
-                <TierRateSection
-                  tierKey="Legend"
-                  rate={currentRate.legendRate}
-                  distribution={currentRate.legendDistribution}
-                />
-
-                {/* エピック以下 */}
-                <TierRateSection
-                  tierKey="Epic"
-                  rate={currentRate.epicRate}
-                  distribution={currentRate.epicDistribution}
-                />
-                <TierRateSection
-                  tierKey="Unique"
-                  rate={currentRate.uniqueRate}
-                  distribution={currentRate.uniqueDistribution}
-                />
-                <TierRateSection
-                  tierKey="Rare"
-                  rate={currentRate.rareRate}
-                  distribution={currentRate.rareDistribution}
-                />
-                <TierRateSection
-                  tierKey="Magic"
-                  rate={currentRate.magicRate}
-                  distribution={currentRate.magicDistribution}
-                />
-                <TierRateSection
-                  tierKey="Normal"
-                  rate={currentRate.normalRate}
-                  distribution={currentRate.normalDistribution}
-                />
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
+                  {/* エピック以下 */}
+                  <TierRateSection
+                    tierKey="Epic"
+                    rate={currentRate.epicRate}
+                    distribution={currentRate.epicDistribution}
+                  />
+                  <TierRateSection
+                    tierKey="Unique"
+                    rate={currentRate.uniqueRate}
+                    distribution={currentRate.uniqueDistribution}
+                  />
+                  <TierRateSection
+                    tierKey="Rare"
+                    rate={currentRate.rareRate}
+                    distribution={currentRate.rareDistribution}
+                  />
+                  <TierRateSection
+                    tierKey="Magic"
+                    rate={currentRate.magicRate}
+                    distribution={currentRate.magicDistribution}
+                  />
+                  <TierRateSection
+                    tierKey="Normal"
+                    rate={currentRate.normalRate}
+                    distribution={currentRate.normalDistribution}
+                  />
+                </div>
+              )}
+            </div>
+          </div >
+        )
+      }
+    </div >
   );
 }

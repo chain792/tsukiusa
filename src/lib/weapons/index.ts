@@ -18,7 +18,7 @@ export {
 export { weaponImages } from './images';
 
 // 定数
-export { levelNames, tierNames, tierOrder, rarityColors } from './constants';
+export { levelNames, tierNames, tierOrder, rarityColors, bonusThresholds } from './constants';
 
 // 武器データ
 export { allWeapons, getWeaponInfo, type WeaponInfo } from './data';

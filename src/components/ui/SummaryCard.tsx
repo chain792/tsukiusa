@@ -12,8 +12,8 @@
  */
 interface SummaryCardProps {
   title: string;
-  value: string;
-  subValue?: string;
+  value: React.ReactNode;
+  subValue?: React.ReactNode;
   color?: string;
   highlight?: boolean;
 }
