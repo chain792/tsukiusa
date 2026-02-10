@@ -111,7 +111,13 @@ export default function GachaAnalyzer() {
   const rawDisplayResults = useMemo(() => {
     if (!result?.rawResults) return [];
     return result.rawResults.results
-      .filter(item => item.count > 0.01 && displayTiers.has(weapons[item.name].tier))
+      .filter(item => {
+        const weapon = weapons[item.name];
+        // スター以上、またはエピック上級(Lv2)以上のみ表示
+        if (displayTiers.has(weapon.tier) && weapon.tier !== 'Epic') return item.count > 0.01;
+        if (weapon.tier === 'Epic' && weapon.level <= 2) return item.count > 0.01;
+        return false;
+      })
       .sort((a, b) => weapons[b.name].requiredL1 - weapons[a.name].requiredL1);
   }, [result]);
 
