@@ -7,6 +7,7 @@
  * @param name - 武器名（WeaponName型、例: 'S1', 'G2'）
  * @param count - 表示する本数
  * @param showDecimals - trueの場合、小数点以下も表示（期待値表示用）
+ * @param locale - 表示言語（デフォルト: 'ja'）
  */
 import {
   weaponImages,
@@ -14,16 +15,20 @@ import {
   getWeaponDisplayName,
   getTier,
   type WeaponName,
+  type Locale,
 } from '../../lib/weapons';
+import { getTranslations } from '../../i18n';
 
 interface WeaponCardProps {
   name: WeaponName;
   count: number;
   showDecimals?: boolean;
+  locale?: Locale;
 }
 
-export function WeaponCard({ name, count, showDecimals = false }: WeaponCardProps) {
-  const displayName = getWeaponDisplayName(name);
+export function WeaponCard({ name, count, showDecimals = false, locale = 'ja' }: WeaponCardProps) {
+  const t = getTranslations(locale);
+  const displayName = getWeaponDisplayName(name, locale);
   const tier = getTier(name);
   const color = rarityColors[tier];
   const isHighRarity = ['U', 'G', 'S'].includes(name.charAt(0));
@@ -58,7 +63,7 @@ export function WeaponCard({ name, count, showDecimals = false }: WeaponCardProp
       </div>
       <div className="text-lg md:text-xl font-extrabold" style={{ color }}>
         {formattedCount}
-        <span className="text-[10px] md:text-xs font-normal ml-1 text-gray-500">本</span>
+        {t.common.unit && <span className="text-[10px] md:text-xs font-normal ml-1 text-gray-500">{t.common.unit}</span>}
       </div>
     </div>
   );

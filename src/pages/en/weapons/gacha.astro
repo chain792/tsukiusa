@@ -1,0 +1,17 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import { GachaAnalyzer } from '../../../components/weapons';
+import { getTranslations } from '../../../i18n';
+
+const t = getTranslations('en');
+---
+
+<Layout title={t.gacha.title} description={t.gacha.description}>
+  <div class="mb-6">
+    <p class="text-gray-600">
+      {t.gacha.subtitle}
+    </p>
+  </div>
+
+  <GachaAnalyzer locale="en" client:load />
+</Layout>

@@ -18,7 +18,9 @@ import {
   getWeaponDisplayName,
   isWeaponName,
   type WeaponName,
+  type Locale,
 } from '../../lib/weapons';
+import { getTranslations } from '../../i18n';
 import { SummaryCard } from '../ui';
 
 // 目標武器の選択肢（レジェンド最上級以上のみ）
@@ -33,7 +35,9 @@ for (const tier of inventoryTiers) {
   groupedWeapons[tier] = allWeapons.filter(w => w.tier === tier);
 }
 
-export default function GoalCalculator() {
+export default function GoalCalculator({ locale = 'ja' }: { locale?: Locale }) {
+  const t = getTranslations(locale);
+
   // 目標設定（空入力を許可するため number | '' 型）
   const [targetWeapon, setTargetWeapon] = useState<WeaponName>('U4');
   const [targetCount, setTargetCount] = useState<number | ''>(1);
@@ -101,6 +105,8 @@ export default function GoalCalculator() {
     ? Math.min(100, Math.round((result.inventoryL1 / result.targetL1) * 100))
     : 0;
 
+  const dateLocale = locale === 'en' ? 'en-US' : 'ja-JP';
+
   return (
     <div className="space-y-6 md:space-y-8 max-w-5xl mx-auto">
       <div className="grid grid-cols-1 gap-6 md:gap-8">
@@ -109,7 +115,7 @@ export default function GoalCalculator() {
           <div className="p-4 md:p-6 border-b border-gray-100 bg-gray-50/50">
             <h2 className="text-base md:text-lg font-bold text-gray-800 flex items-center gap-2">
               <span className="w-1 h-5 md:h-6 bg-green-600 rounded-full"></span>
-              目標設定
+              {t.goal.goalSetting}
             </h2>
           </div>
 
@@ -117,7 +123,7 @@ export default function GoalCalculator() {
             {/* 武器・本数選択 */}
             <div className="space-y-4 md:space-y-6">
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">目標の武器</label>
+                <label className="block text-sm font-bold text-gray-700 mb-2">{t.goal.targetWeapon}</label>
                 <select
                   value={targetWeapon}
                   onChange={(e) => setTargetWeapon(e.target.value as WeaponName)}
@@ -125,14 +131,14 @@ export default function GoalCalculator() {
                 >
                   {targetWeaponOptions.map((weapon) => (
                     <option key={weapon.name} value={weapon.name}>
-                      {getWeaponDisplayName(weapon.name)}
+                      {getWeaponDisplayName(weapon.name, locale)}
                     </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs md:text-sm font-bold text-gray-700 mb-2">目標本数</label>
+                <label className="block text-xs md:text-sm font-bold text-gray-700 mb-2">{t.goal.targetCount}</label>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
@@ -152,7 +158,7 @@ export default function GoalCalculator() {
                       min="1"
                       className="w-full pl-3 pr-8 py-2 md:pl-4 md:pr-10 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none text-base md:text-lg font-mono text-center"
                     />
-                    <span className="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 text-gray-400 font-medium text-xs md:text-base">本</span>
+                    {t.common.unit && <span className="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 text-gray-400 font-medium text-xs md:text-base">{t.common.unit}</span>}
                   </div>
                   <button
                     type="button"
@@ -173,17 +179,17 @@ export default function GoalCalculator() {
                     <div className="absolute inset-0 bg-white rounded-full blur-xl opacity-60"></div>
                     <img
                       src={targetImage.src}
-                      alt={getWeaponDisplayName(targetWeapon)}
+                      alt={getWeaponDisplayName(targetWeapon, locale)}
                       className="w-20 h-20 md:w-24 md:h-24 object-contain relative z-10 drop-shadow-md"
                     />
                   </div>
                   <div className="text-center">
                     <div className="text-xs text-gray-500 mb-1">Target Weapon</div>
                     <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-2">
-                      {getWeaponDisplayName(targetWeapon)}
+                      {getWeaponDisplayName(targetWeapon, locale)}
                     </h3>
                     <div className="inline-flex items-center px-3 py-1 bg-white border border-gray-200 rounded-full text-xs md:text-sm font-semibold text-gray-600">
-                      × {numericTargetCount.toLocaleString()} 本
+                      × {numericTargetCount.toLocaleString()} {t.common.unit}
                     </div>
                   </div>
                 </>
@@ -197,14 +203,14 @@ export default function GoalCalculator() {
           <div className="p-4 md:p-6 border-b border-gray-100 bg-gray-50/50">
             <h2 className="text-base md:text-lg font-bold text-gray-800 flex items-center gap-2">
               <span className="w-1 h-5 md:h-6 bg-purple-500 rounded-full"></span>
-              達成予測のための設定
+              {t.goal.predictionSettings}
             </h2>
           </div>
           <div className="p-4 md:p-6 bg-purple-50/30">
             <div className="flex flex-col md:flex-row md:items-end gap-4">
               <div className="flex-1">
                 <label className="block text-xs md:text-sm font-bold text-gray-700 mb-2">
-                  1日の獲得数（レジェンド最上級換算）
+                  {t.goal.dailyL1Label}
                 </label>
                 <div className="flex items-center gap-2">
                   <button
@@ -225,7 +231,7 @@ export default function GoalCalculator() {
                       min="0"
                       className="w-full pl-3 pr-8 py-2 md:pl-4 md:pr-10 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-base md:text-lg font-mono text-center"
                     />
-                    <span className="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 text-gray-400 font-medium text-xs md:text-base">本</span>
+                    {t.common.unit && <span className="absolute right-3 md:right-4 top-1/2 transform -translate-y-1/2 text-gray-400 font-medium text-xs md:text-base">{t.common.unit}</span>}
                   </div>
                   <button
                     type="button"
@@ -237,8 +243,7 @@ export default function GoalCalculator() {
                 </div>
               </div>
               <div className="text-xs text-gray-500 md:mb-3 md:flex-1">
-                ※ 放置狩りや武器倉庫、武器ガチャ等で1日に獲得できる「レジェンド最上級」の本数を入力してください。
-                これをもとに達成予定日を算出します。
+                {t.goal.dailyL1Note}
               </div>
             </div>
           </div>
@@ -250,10 +255,10 @@ export default function GoalCalculator() {
         <div className="p-4 md:p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
           <h2 className="text-base md:text-lg font-bold text-gray-800 flex items-center gap-2">
             <span className="w-1 h-5 md:h-6 bg-blue-600 rounded-full"></span>
-            現在の所持武器
+            {t.goal.currentInventory}
           </h2>
           <span className="text-[10px] md:text-xs text-gray-500 bg-white px-2 py-1 rounded border border-gray-200">
-            タップして開閉
+            {t.goal.tapToToggle}
           </span>
         </div>
 
@@ -268,7 +273,7 @@ export default function GoalCalculator() {
               >
                 <div className="flex items-center gap-2 md:gap-3 flex-wrap">
                   <h4 className="font-bold text-gray-700 text-sm md:text-base" style={{ color: rarityColors[tier] }}>
-                    {tierNames[tier]} Tier
+                    {tierNames[locale][tier]} Tier
                   </h4>
                   {/* 入力中の武器数を表示 */}
                   {(() => {
@@ -278,7 +283,7 @@ export default function GoalCalculator() {
                     }, 0);
                     return count > 0 ? (
                       <span className="text-[10px] md:text-xs font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
-                        {count}本 入力中
+                        {count}{t.goal.inputting}
                       </span>
                     ) : null;
                   })()}
@@ -302,7 +307,7 @@ export default function GoalCalculator() {
                             className="w-10 h-10 md:w-12 md:h-12 object-contain mr-2 md:mr-3 shrink-0"
                           />
                           <div className="flex-1 min-w-0">
-                            <div className="text-[10px] md:text-xs text-gray-500 mb-1 truncate">{getWeaponDisplayName(weapon.name)}</div>
+                            <div className="text-[10px] md:text-xs text-gray-500 mb-1 truncate">{getWeaponDisplayName(weapon.name, locale)}</div>
                             <div className="flex items-center gap-1">
                               <button
                                 type="button"
@@ -344,28 +349,28 @@ export default function GoalCalculator() {
         {/* サマリーカード */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           <SummaryCard
-            title="必要総数"
+            title={t.goal.totalRequired}
             value={`${result.targetL1.toLocaleString()}`}
-            subValue="レジェンド最上級換算"
+            subValue={t.goal.l1Equivalent}
             color="#1d4ed8"
             highlight={true}
           />
           <SummaryCard
-            title="所持数"
+            title={t.goal.owned}
             value={`${result.inventoryL1.toLocaleString()}`}
-            subValue="レジェンド最上級換算"
+            subValue={t.goal.l1Equivalent}
             color="#16a34a"
           />
           <SummaryCard
-            title="不足数"
+            title={t.goal.shortage}
             value={`${result.neededL1.toLocaleString()}`}
-            subValue="レジェンド最上級換算"
+            subValue={t.goal.l1Equivalent}
             color="#ea580c"
           />
           <SummaryCard
-            title="達成予定"
-            value={result.daysNeeded === Infinity ? '未定' : result.neededL1 === 0 ? '達成' : `${result.daysNeeded.toLocaleString()}日`}
-            subValue={result.daysNeeded !== Infinity && result.neededL1 > 0 ? `約 ${(result.daysNeeded / 30).toFixed(1)}ヶ月` : undefined}
+            title={t.goal.estimatedCompletion}
+            value={result.daysNeeded === Infinity ? t.goal.undetermined : result.neededL1 === 0 ? t.goal.achieved : `${result.daysNeeded.toLocaleString()}${t.common.days}`}
+            subValue={result.daysNeeded !== Infinity && result.neededL1 > 0 ? `${locale === 'ja' ? '約 ' : '~'}${(result.daysNeeded / 30).toFixed(1)}${t.goal.months}` : undefined}
             color="#9333ea"
           />
         </div>
@@ -373,7 +378,7 @@ export default function GoalCalculator() {
         {/* 進捗バー */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-6">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-bold text-gray-800 text-sm md:text-base">目標達成状況</h3>
+            <h3 className="font-bold text-gray-800 text-sm md:text-base">{t.goal.progressTitle}</h3>
             <span className="text-xl md:text-2xl font-black text-blue-600">{progressPercent}%</span>
           </div>
 
@@ -393,10 +398,14 @@ export default function GoalCalculator() {
           {result.neededL1 > 0 && result.daysNeeded !== Infinity ? (
             <div className="flex flex-col sm:flex-row sm:items-center justify-between text-sm bg-blue-50/50 p-3 md:p-4 rounded-xl border border-blue-100">
               <div className="text-gray-600 mb-2 sm:mb-0 text-xs md:text-sm">
-                現在のペース（<span className="font-bold text-gray-800">{numericDailyL1}本/日</span>）で継続した場合の達成予定日
+                {locale === 'ja' ? (
+                  <>現在のペース（<span className="font-bold text-gray-800">{numericDailyL1}{t.common.unit}/日</span>）で継続した場合の達成予定日</>
+                ) : (
+                  <>{t.goal.paceMessage} (<span className="font-bold text-gray-800">{numericDailyL1}/day</span>)</>
+                )}
               </div>
               <div className="text-base md:text-lg font-bold text-blue-800 text-right sm:text-left">
-                {new Date(Date.now() + result.daysNeeded * 24 * 60 * 60 * 1000).toLocaleDateString('ja-JP', {
+                {new Date(Date.now() + result.daysNeeded * 24 * 60 * 60 * 1000).toLocaleDateString(dateLocale, {
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric',
@@ -412,12 +421,12 @@ export default function GoalCalculator() {
                 className="w-16 md:w-20 object-contain mb-4"
               />
               <div className="text-green-700 font-bold text-sm md:text-base">
-                目標を達成しています！
+                {t.goal.achievedMessage}
               </div>
             </div>
           ) : (
             <div className="text-center py-3 md:py-4 bg-gray-50 rounded-xl border border-gray-200 text-gray-500 text-xs md:text-sm">
-              1日の獲得ペースを入力すると達成予定日が計算されます
+              {t.goal.inputPaceMessage}
             </div>
           )}
         </div>

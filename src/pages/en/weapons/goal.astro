@@ -1,0 +1,11 @@
+---
+import Layout from "../../../layouts/Layout.astro";
+import { GoalCalculator } from "../../../components/weapons";
+import { getTranslations } from "../../../i18n";
+
+const t = getTranslations('en');
+---
+
+<Layout title={t.goal.title} description={t.goal.description}>
+  <GoalCalculator locale="en" client:load />
+</Layout>

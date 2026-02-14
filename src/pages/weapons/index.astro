@@ -1,8 +1,11 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import { WeaponCatalog } from '../../components/weapons';
+import { getTranslations } from '../../i18n';
+
+const t = getTranslations('ja');
 ---
 
-<Layout title="武器図鑑" description="月ウサギのそだてかた全武器のレアリティと必要合成数一覧。L1からU4まで、各武器の詳細情報を確認できます">
-  <WeaponCatalog client:load />
+<Layout title={t.catalog.title} description={t.catalog.description}>
+  <WeaponCatalog locale="ja" client:load />
 </Layout>

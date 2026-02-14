@@ -1,14 +1,17 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import { GachaAnalyzer } from '../../components/weapons';
+import { getTranslations } from '../../i18n';
+
+const t = getTranslations('ja');
 ---
 
-<Layout title="武器ガチャシミュレータ" description="武器ガチャN回で獲得できる武器の期待値を計算。G1やU4までの道のりを可視化します。月ウサギのそだてかた攻略">
+<Layout title={t.gacha.title} description={t.gacha.description}>
   <div class="mb-6">
     <p class="text-gray-600">
-      武器ガチャを回した時の獲得武器の期待値を計算します
+      {t.gacha.subtitle}
     </p>
   </div>
 
-  <GachaAnalyzer client:load />
+  <GachaAnalyzer locale="ja" client:load />
 </Layout>

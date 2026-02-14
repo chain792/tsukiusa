@@ -43,3 +43,6 @@ export {
 
 // ユーティリティ関数
 export { getWeaponDisplayName, getTier } from './utils';
+
+// ロケール型の再エクスポート
+export type { Locale } from '../../i18n/types';

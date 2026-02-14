@@ -1,8 +1,11 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import { GoalCalculator } from "../../components/weapons";
+import { getTranslations } from "../../i18n";
+
+const t = getTranslations('ja');
 ---
 
-<Layout title="武器目標計算" description="目標の武器を作るために必要な素材数と、毎日の獲得量から達成までの日数を計算します。月ウサギのそだてかた攻略">
-  <GoalCalculator client:load />
+<Layout title={t.goal.title} description={t.goal.description}>
+  <GoalCalculator locale="ja" client:load />
 </Layout>

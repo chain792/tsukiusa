@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import { getTranslations, getLocalePath, getAlternatePath, type Locale } from "../i18n";
 
 interface Props {
   title: string;
@@ -8,28 +9,60 @@ interface Props {
 
 const { title, description } = Astro.props;
 const currentPath = Astro.url.pathname;
+const locale = (Astro.currentLocale || 'ja') as Locale;
+const t = getTranslations(locale);
 
 // SEO関連の定数
-const siteName = "月ウサギのそだてかた 攻略";
-const defaultDescription =
-  "月ウサギのそだてかた - 武器合成の計画とガチャ分析ができる非公式ファン攻略サイト";
+const siteName = t.layout.siteName;
+const defaultDescription = locale === 'ja'
+  ? "月ウサギのそだてかた - 武器合成の計画とガチャ分析ができる非公式ファン攻略サイト"
+  : "How to Raise a Moon Rabbit - Unofficial fan strategy site for weapon synthesis planning and gacha analysis";
 const pageDescription = description || defaultDescription;
 const fullTitle = `${title} | ${siteName}`;
 const canonicalUrl = new URL(currentPath, Astro.site).href;
 const ogImageUrl = new URL("/og-image.jpeg", Astro.site).href;
 
-// GA4測定ID（TODO: 実際のIDに置き換えてください）
+// hreflang用の代替URL
+const jaPath = getAlternatePath(currentPath, 'ja');
+const enPath = getAlternatePath(currentPath, 'en');
+const jaUrl = new URL(jaPath, Astro.site).href;
+const enUrl = new URL(enPath, Astro.site).href;
+
+// ナビゲーション用のパス生成
+const homePath = getLocalePath('/', locale);
+const weaponsPath = getLocalePath('/weapons', locale);
+const goalPath = getLocalePath('/weapons/goal', locale);
+const gachaPath = getLocalePath('/weapons/gacha', locale);
+
+// 言語切替先のパス
+const switchLocale = locale === 'ja' ? 'en' : 'ja';
+const switchPath = getAlternatePath(currentPath, switchLocale);
+const switchLabel = locale === 'ja' ? 'EN' : 'JA';
+
+// GA4測定ID
 const GA_MEASUREMENT_ID = "G-M9EMKXS84R";
+
+// currentPathの正規化（末尾スラッシュの有無を吸収）
+function isActive(path: string): boolean {
+  const normalized = currentPath.replace(/\/$/, '') || '/';
+  const target = path.replace(/\/$/, '') || '/';
+  return normalized === target;
+}
 ---
 
 <!doctype html>
-<html lang="ja">
+<html lang={locale}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{fullTitle}</title>
     <meta name="description" content={pageDescription} />
     <link rel="canonical" href={canonicalUrl} />
+
+    <!-- hreflang -->
+    <link rel="alternate" hreflang="ja" href={jaUrl} />
+    <link rel="alternate" hreflang="en" href={enUrl} />
+    <link rel="alternate" hreflang="x-default" href={jaUrl} />
 
     <!-- OGP (Open Graph Protocol) -->
     <meta property="og:type" content="website" />
@@ -38,7 +71,7 @@ const GA_MEASUREMENT_ID = "G-M9EMKXS84R";
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:site_name" content={siteName} />
     <meta property="og:image" content={ogImageUrl} />
-    <meta property="og:locale" content="ja_JP" />
+    <meta property="og:locale" content={locale === 'ja' ? 'ja_JP' : 'en_US'} />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -67,27 +100,35 @@ const GA_MEASUREMENT_ID = "G-M9EMKXS84R";
         class="bg-white border-b border-gray-200 p-4 flex items-center justify-between md:hidden sticky top-0 z-30"
       >
         <a
-          href="/"
+          href={homePath}
           class="text-lg font-bold text-gray-800 hover:text-blue-600 transition-colors"
-          >月ウサ攻略</a
+          >{t.layout.mobileTitle}</a
         >
-        <button
-          id="menu-toggle"
-          class="p-2 rounded-md hover:bg-gray-100 text-gray-600 focus:outline-none"
-        >
-          <svg
-            class="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+        <div class="flex items-center gap-2">
+          <a
+            href={switchPath}
+            class="px-2 py-1 text-xs font-bold text-gray-500 hover:text-blue-600 border border-gray-300 rounded transition-colors"
           >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M4 6h16M4 12h16M4 18h16"></path>
-          </svg>
-        </button>
+            {switchLabel}
+          </a>
+          <button
+            id="menu-toggle"
+            class="p-2 rounded-md hover:bg-gray-100 text-gray-600 focus:outline-none"
+          >
+            <svg
+              class="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+          </button>
+        </div>
       </header>
 
       <!-- オーバーレイ (モバイル表示時) -->
@@ -105,9 +146,9 @@ const GA_MEASUREMENT_ID = "G-M9EMKXS84R";
         <div class="p-6 flex justify-between items-start">
           <div>
             <h1 class="text-xl font-bold text-gray-800 mb-2">
-              月ウサギのそだてかた
+              {locale === 'ja' ? '月ウサギのそだてかた' : 'Tsukiusa'}
             </h1>
-            <p class="text-sm text-gray-600">攻略情報</p>
+            <p class="text-sm text-gray-600">{t.layout.siteInfo}</p>
           </div>
           <button
             id="menu-close"
@@ -131,14 +172,14 @@ const GA_MEASUREMENT_ID = "G-M9EMKXS84R";
         <nav class="px-4 pb-20 overflow-y-auto h-[calc(100vh-100px)]">
           <!-- ホーム -->
           <a
-            href="/"
+            href={homePath}
             class={`block px-4 py-2 rounded-md transition-colors ${
-              currentPath === "/"
+              isActive(homePath)
                 ? "bg-blue-50 text-blue-700 font-medium"
                 : "text-gray-700 hover:bg-gray-100"
             }`}
           >
-            ホーム
+            {t.layout.home}
           </a>
 
           <!-- 区切り線 -->
@@ -149,49 +190,56 @@ const GA_MEASUREMENT_ID = "G-M9EMKXS84R";
             <p
               class="px-4 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider"
             >
-              武器
+              {t.layout.weapons}
             </p>
           </div>
           <ul class="space-y-1">
             <li>
               <a
-                href="/weapons"
+                href={weaponsPath}
                 class={`block px-4 py-2 rounded-md transition-colors ${
-                  currentPath === "/weapons" || currentPath === "/weapons/"
+                  isActive(weaponsPath)
                     ? "bg-blue-50 text-blue-700 font-medium"
                     : "text-gray-700 hover:bg-gray-100"
                 }`}
               >
-                武器図鑑
+                {t.layout.weaponCatalog}
               </a>
             </li>
             <li>
               <a
-                href="/weapons/goal"
+                href={goalPath}
                 class={`block px-4 py-2 rounded-md transition-colors ${
-                  currentPath === "/weapons/goal" ||
-                  currentPath === "/weapons/goal/"
+                  isActive(goalPath)
                     ? "bg-blue-50 text-blue-700 font-medium"
                     : "text-gray-700 hover:bg-gray-100"
                 }`}
               >
-                武器目標計算
+                {t.layout.goalCalculator}
               </a>
             </li>
             <li>
               <a
-                href="/weapons/gacha"
+                href={gachaPath}
                 class={`block px-4 py-2 rounded-md transition-colors ${
-                  currentPath === "/weapons/gacha" ||
-                  currentPath === "/weapons/gacha/"
+                  isActive(gachaPath)
                     ? "bg-blue-50 text-blue-700 font-medium"
                     : "text-gray-700 hover:bg-gray-100"
                 }`}
               >
-                武器ガチャシミュレータ
+                {t.layout.gachaSimulator}
               </a>
             </li>
           </ul>
+
+          <!-- 言語切替 -->
+          <div class="border-t border-gray-200 my-3"></div>
+          <a
+            href={switchPath}
+            class="block px-4 py-2 rounded-md text-gray-700 hover:bg-gray-100 transition-colors text-sm"
+          >
+            {locale === 'ja' ? '🌐 English' : '🌐 日本語'}
+          </a>
         </nav>
       </aside>
 

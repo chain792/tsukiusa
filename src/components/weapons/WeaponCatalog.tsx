@@ -11,22 +11,11 @@ import {
   weapons,
   rarityColors,
   type WeaponName,
+  type Locale,
 } from '../../lib/weapons';
+import { getTranslations } from '../../i18n';
+import { getWeaponDisplayName } from '../../lib/weapons';
 import { WeaponCard } from '../ui';
-
-// 基準武器の選択肢（換算の基準となる武器）
-const baseWeaponOptions: { value: WeaponName; label: string }[] = [
-  { value: 'L1', label: 'レジェンド最上級' },
-  { value: 'S4', label: 'スター下級' },
-  { value: 'S3', label: 'スター中級' },
-  { value: 'S2', label: 'スター上級' },
-  { value: 'S1', label: 'スター最上級' },
-  { value: 'G4', label: 'ギャラクシー下級' },
-  { value: 'G3', label: 'ギャラクシー中級' },
-  { value: 'G2', label: 'ギャラクシー上級' },
-  { value: 'G1', label: 'ギャラクシー最上級' },
-  { value: 'U4', label: 'ユニバース下級' },
-];
 
 /**
  * 基準武器に対する換算値を計算
@@ -38,14 +27,23 @@ function getRequiredBase(weaponName: WeaponName, baseName: WeaponName): number {
   return weaponL1 / baseL1;
 }
 
-export default function WeaponCatalog() {
+// 基準武器の選択肢定義（value のみ、ラベルはロケールから生成）
+const baseWeaponValues: WeaponName[] = ['L1', 'S4', 'S3', 'S2', 'S1', 'G4', 'G3', 'G2', 'G1', 'U4'];
+
+export default function WeaponCatalog({ locale = 'ja' }: { locale?: Locale }) {
+  const t = getTranslations(locale);
   const [baseWeapon, setBaseWeapon] = useState<WeaponName>('L1');
+
+  const baseWeaponOptions = baseWeaponValues.map(value => ({
+    value,
+    label: getWeaponDisplayName(value, locale),
+  }));
 
   // ティア別に武器をグループ化
   const weaponSections = [
-    { tier: 'Star' as const, title: 'Star (スター)', weapons: allWeapons.filter(w => w.tier === 'Star') },
-    { tier: 'Galaxy' as const, title: 'Galaxy (ギャラクシー)', weapons: allWeapons.filter(w => w.tier === 'Galaxy') },
-    { tier: 'Universe' as const, title: 'Universe (ユニバース)', weapons: allWeapons.filter(w => w.tier === 'Universe') },
+    { tier: 'Star' as const, weapons: allWeapons.filter(w => w.tier === 'Star') },
+    { tier: 'Galaxy' as const, weapons: allWeapons.filter(w => w.tier === 'Galaxy') },
+    { tier: 'Universe' as const, weapons: allWeapons.filter(w => w.tier === 'Universe') },
   ];
 
   return (
@@ -53,7 +51,7 @@ export default function WeaponCatalog() {
       {/* ===== 基準武器選択 ===== */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 px-4 py-3 md:px-6 md:py-4 flex flex-col sm:flex-row sm:items-center gap-3 md:gap-4">
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-          <label className="font-bold text-gray-700 whitespace-nowrap text-sm md:text-base">基準武器:</label>
+          <label className="font-bold text-gray-700 whitespace-nowrap text-sm md:text-base">{t.catalog.baseWeapon}</label>
           <div className="relative w-full sm:w-auto">
             <select
               value={baseWeapon}
@@ -74,12 +72,12 @@ export default function WeaponCatalog() {
           </div>
         </div>
         <div className="text-[10px] md:text-xs text-gray-500">
-          ※ 各武器1本を作るのに、基準武器が何本必要かを表示します
+          {t.catalog.baseWeaponNote}
         </div>
       </div>
 
       {/* ===== ティア別武器一覧 ===== */}
-      {weaponSections.map(({ tier, title, weapons: sectionWeapons }) => (
+      {weaponSections.map(({ tier, weapons: sectionWeapons }) => (
         <div key={tier} className="bg-white rounded-xl shadow border border-gray-100 overflow-hidden">
           {/* ティアヘッダー */}
           <div
@@ -89,7 +87,7 @@ export default function WeaponCatalog() {
               borderLeft: `4px solid ${rarityColors[tier]}`
             }}
           >
-            <h3 className="text-base md:text-lg font-bold" style={{ color: rarityColors[tier] }}>{title}</h3>
+            <h3 className="text-base md:text-lg font-bold" style={{ color: rarityColors[tier] }}>{tier}</h3>
           </div>
 
           {/* 武器カードグリッド */}
@@ -100,6 +98,7 @@ export default function WeaponCatalog() {
                   key={weapon.name}
                   name={weapon.name}
                   count={getRequiredBase(weapon.name, baseWeapon)}
+                  locale={locale}
                 />
               ))}
             </div>

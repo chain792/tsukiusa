@@ -8,7 +8,7 @@
  */
 import { useState, useMemo } from 'react';
 import { analyzeExpectation } from '../../utils/expectationCalculator';
-import type { GachaLevel, WeaponName } from '../../lib/weapons';
+import type { GachaLevel, WeaponName, Locale } from '../../lib/weapons';
 import {
   weapons,
   tierNames,
@@ -18,6 +18,7 @@ import {
   getGachaRate,
   bonusThresholds,
 } from '../../lib/weapons';
+import { getTranslations } from '../../i18n';
 import { SummaryCard, WeaponCard } from '../ui';
 
 // エピック以上のティア
@@ -34,13 +35,15 @@ function TierRateSection({
   rate,
   distribution,
   decimalPlaces = 2,
+  locale = 'ja',
 }: {
   tierKey: string;
   rate: number;
   distribution: Record<string, number>;
   decimalPlaces?: number;
+  locale?: Locale;
 }) {
-  const tierName = tierNames[tierKey] || tierKey;
+  const tierName = tierNames[locale][tierKey] || tierKey;
   return (
     <div>
       <div className="flex justify-between items-end mb-2 pb-2 border-b border-gray-100">
@@ -52,7 +55,7 @@ function TierRateSection({
           const actualProb = rate * ratio;
           return (
             <div key={name} className="flex justify-between items-center py-1 border-b border-gray-50 last:border-0">
-              <span className="font-bold text-gray-600 text-xs md:text-sm">{getWeaponDisplayName(name)}</span>
+              <span className="font-bold text-gray-600 text-xs md:text-sm">{getWeaponDisplayName(name, locale)}</span>
               <div className="text-right">
                 <span className="font-bold text-gray-800 text-xs md:text-sm">{(actualProb * 100).toFixed(decimalPlaces)}%</span>
                 <span className="text-gray-400 text-[10px] ml-1">({(ratio * 100).toFixed(0)}%)</span>
@@ -65,7 +68,9 @@ function TierRateSection({
   );
 }
 
-export default function GachaAnalyzer() {
+export default function GachaAnalyzer({ locale = 'ja' }: { locale?: Locale }) {
+  const t = getTranslations(locale);
+
   // ガチャ設定
   const [gachaLevel, setGachaLevel] = useState<GachaLevel>(14);
   const [totalPulls, setTotalPulls] = useState<number | ''>(2000);
@@ -136,6 +141,16 @@ export default function GachaAnalyzer() {
   const numericPulls = typeof totalPulls === 'number' ? totalPulls : 0;
   const totalRubies = numericPulls * 100;
 
+  // ルビー表示のフォーマット
+  const formatRubies = (rubies: number) => {
+    if (locale === 'en') {
+      if (rubies >= 1000000) return `${(rubies / 1000000).toFixed(1)}M`;
+      if (rubies >= 1000) return `${(rubies / 1000).toFixed(0)}K`;
+      return rubies.toLocaleString();
+    }
+    return `${Math.floor(rubies / 10000).toLocaleString()}万`;
+  };
+
   return (
     <div className="space-y-6 md:space-y-8 max-w-5xl mx-auto">
       {/* ===== 設定エリア ===== */}
@@ -143,7 +158,7 @@ export default function GachaAnalyzer() {
         <div className="p-4 md:p-6 border-b border-gray-100 bg-gray-50/50">
           <h2 className="text-base md:text-lg font-bold text-gray-800 flex items-center gap-2">
             <span className="w-1 h-5 md:h-6 bg-blue-600 rounded-full"></span>
-            シミュレーション設定
+            {t.gacha.simulationSettings}
           </h2>
         </div>
 
@@ -151,7 +166,7 @@ export default function GachaAnalyzer() {
           {/* ガチャレベル選択 */}
           <div>
             <label className="block mb-2 md:mb-3 text-sm font-bold text-gray-700">
-              ガチャレベル
+              {t.gacha.gachaLevel}
             </label>
             <div className="flex flex-wrap gap-2">
               {gachaRates.map((rate) => (
@@ -172,7 +187,7 @@ export default function GachaAnalyzer() {
           {/* ガチャ回数入力 */}
           <div>
             <label className="block mb-2 md:mb-3 text-sm font-bold text-gray-700">
-              ガチャ回数
+              {t.gacha.gachaPulls}
             </label>
             {/* クイック選択ボタン */}
             <div className="flex flex-wrap gap-2 mb-3 md:mb-4">
@@ -201,9 +216,9 @@ export default function GachaAnalyzer() {
                 min="0"
                 step="1000"
                 className="w-full pl-4 pr-12 py-2 md:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow outline-none font-mono text-base md:text-lg"
-                placeholder="カスタム回数"
+                placeholder={t.gacha.customPulls}
               />
-              <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 font-medium text-sm">回</span>
+              <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 font-medium text-sm">{locale === 'ja' ? '回' : ''}</span>
             </div>
           </div>
         </div>
@@ -214,16 +229,15 @@ export default function GachaAnalyzer() {
         result && numericPulls > 0 && (
           <div className="space-y-4 md:space-y-6">
             {/* サマリーカード */}
-            {/* 設定・コスト・換算結果（PCで1:1:2配置） */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
               <SummaryCard
-                title="ガチャ設定"
-                value={`${numericPulls.toLocaleString()}回`}
+                title={t.gacha.gachaSettings}
+                value={`${numericPulls.toLocaleString()}${t.common.pulls}`}
                 subValue={`Lv.${gachaLevel}`}
               />
               <SummaryCard
-                title="消費ルビー"
-                value={`${Math.floor(totalRubies / 10000).toLocaleString()}万`}
+                title={t.gacha.rubySpent}
+                value={formatRubies(totalRubies)}
                 subValue={`${totalRubies.toLocaleString()}`}
               />
 
@@ -232,12 +246,12 @@ export default function GachaAnalyzer() {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 h-full">
                   {/* メイン数値 */}
                   <div className="flex flex-col justify-center min-w-[120px]">
-                    <h3 className="text-xs md:text-sm font-medium opacity-80 text-gray-500 mb-1">レジェンド最上級換算</h3>
+                    <h3 className="text-xs md:text-sm font-medium opacity-80 text-gray-500 mb-1">{t.gacha.l1Equivalent}</h3>
                     <div className="flex items-baseline gap-1">
                       <span className="text-2xl md:text-3xl font-bold text-gray-800 tracking-tight">
                         {Math.floor(totalL1Count).toLocaleString()}
                       </span>
-                      <span className="text-xs md:text-sm font-bold text-gray-500">本</span>
+                      {t.common.unit && <span className="text-xs md:text-sm font-bold text-gray-500">{t.common.unit}</span>}
                     </div>
                   </div>
 
@@ -245,19 +259,19 @@ export default function GachaAnalyzer() {
                   <div className="flex-1 border-t md:border-t-0 md:border-l border-gray-100 pt-3 md:pt-0 md:pl-4 flex flex-col justify-center">
                     <div className="flex items-center gap-3 text-sm mb-2">
                       <div className="flex flex-col items-start px-2 py-1">
-                        <span className="text-[11px] text-gray-500">ガチャ排出</span>
+                        <span className="text-[11px] text-gray-500">{t.gacha.gachaDrops}</span>
                         <span className="font-bold text-gray-700">{Math.floor(gachaL1Count).toLocaleString()}</span>
                       </div>
                       <div className="text-gray-300 font-light">+</div>
                       <div className="flex flex-col items-start px-2 py-1">
-                        <span className="text-[11px] text-gray-500">累積ボーナス</span>
+                        <span className="text-[11px] text-gray-500">{t.gacha.cumulativeBonus}</span>
                         <span className="font-bold text-gray-700">{bonusL1Count.toLocaleString()}</span>
                       </div>
                     </div>
 
                     {/* 説明文 */}
                     <div className="text-[11px] text-gray-500 leading-tight">
-                      ※ 累積ボーナスは、武器ガチャを{bonusThresholds[gachaLevel]}回毎に1つ獲得できるものとして簡易的に計算しています
+                      {t.gacha.bonusNote.replace('{threshold}', String(bonusThresholds[gachaLevel]))}
                     </div>
                   </div>
                 </div>
@@ -268,8 +282,8 @@ export default function GachaAnalyzer() {
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="p-4 md:p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
                 <h3 className="text-base md:text-lg font-bold text-gray-800">
-                  最終獲得武器
-                  <span className="ml-2 text-xs md:text-sm font-normal text-gray-500">※全て合成した場合の期待値</span>
+                  {t.gacha.finalWeapons}
+                  <span className="ml-2 text-xs md:text-sm font-normal text-gray-500">{t.gacha.finalWeaponsNote}</span>
                 </h3>
               </div>
 
@@ -282,12 +296,13 @@ export default function GachaAnalyzer() {
                         name={item.name}
                         count={item.count}
                         showDecimals={true}
+                        locale={locale}
                       />
                     ))}
                   </div>
                 ) : (
                   <div className="text-center py-12 text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                    獲得できる武器はありません
+                    {t.gacha.noWeapons}
                   </div>
                 )}
               </div>
@@ -300,7 +315,7 @@ export default function GachaAnalyzer() {
                 className="w-full px-4 py-3 md:px-6 md:py-4 flex items-center justify-between bg-gray-50/50 hover:bg-gray-100 transition-colors text-left"
               >
                 <h3 className="text-sm font-bold text-gray-700">
-                  参考：ガチャ排出内訳 (期待値)
+                  {t.gacha.rawBreakdown}
                 </h3>
                 <span className={`transform transition-transform duration-200 text-gray-500 ${isRawResultsOpen ? 'rotate-180' : ''}`}>
                   ▼
@@ -317,12 +332,13 @@ export default function GachaAnalyzer() {
                           name={item.name}
                           count={item.count}
                           showDecimals={true}
+                          locale={locale}
                         />
                       ))}
                     </div>
                   ) : (
                     <div className="text-center py-8 text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                      排出情報なし
+                      {t.gacha.noDropInfo}
                     </div>
                   )}
                 </div>
@@ -336,7 +352,7 @@ export default function GachaAnalyzer() {
                 className="w-full px-4 py-3 md:px-6 md:py-4 flex items-center justify-between bg-gray-50/50 hover:bg-gray-100 transition-colors text-left"
               >
                 <h3 className="text-sm font-bold text-gray-700">
-                  Lv.{gachaLevel} 排出確率詳細
+                  Lv.{gachaLevel} {t.gacha.rateDetails}
                 </h3>
                 <span className={`transform transition-transform duration-200 text-gray-500 ${isRateTableOpen ? 'rotate-180' : ''}`}>
                   ▼
@@ -352,6 +368,7 @@ export default function GachaAnalyzer() {
                       rate={currentRate.starRate!}
                       distribution={currentRate.starDistribution}
                       decimalPlaces={4}
+                      locale={locale}
                     />
                   )}
 
@@ -360,6 +377,7 @@ export default function GachaAnalyzer() {
                     tierKey="Legend"
                     rate={currentRate.legendRate}
                     distribution={currentRate.legendDistribution}
+                    locale={locale}
                   />
 
                   {/* エピック以下 */}
@@ -367,26 +385,31 @@ export default function GachaAnalyzer() {
                     tierKey="Epic"
                     rate={currentRate.epicRate}
                     distribution={currentRate.epicDistribution}
+                    locale={locale}
                   />
                   <TierRateSection
                     tierKey="Unique"
                     rate={currentRate.uniqueRate}
                     distribution={currentRate.uniqueDistribution}
+                    locale={locale}
                   />
                   <TierRateSection
                     tierKey="Rare"
                     rate={currentRate.rareRate}
                     distribution={currentRate.rareDistribution}
+                    locale={locale}
                   />
                   <TierRateSection
                     tierKey="Magic"
                     rate={currentRate.magicRate}
                     distribution={currentRate.magicDistribution}
+                    locale={locale}
                   />
                   <TierRateSection
                     tierKey="Normal"
                     rate={currentRate.normalRate}
                     distribution={currentRate.normalDistribution}
+                    locale={locale}
                   />
                 </div>
               )}

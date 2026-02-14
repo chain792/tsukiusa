@@ -1,0 +1,11 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import { WeaponCatalog } from '../../../components/weapons';
+import { getTranslations } from '../../../i18n';
+
+const t = getTranslations('en');
+---
+
+<Layout title={t.catalog.title} description={t.catalog.description}>
+  <WeaponCatalog locale="en" client:load />
+</Layout>

@@ -1,162 +1,21 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { Image } from "astro:assets";
+import { HomePage } from "../components/home";
+import { getTranslations } from "../i18n";
 import headerImage from "../assets/tsukiusa_1500x500.jpeg";
 import L1Image from "../assets/L1.png";
 import studyingImage from "../assets/studying.webp";
 import gachaImage from "../assets/weapon_gacha.webp";
+
+const t = getTranslations('ja');
+const images = {
+  header: { src: headerImage.src, alt: "月ウサギのそだてかた" },
+  catalog: { src: L1Image.src },
+  goal: { src: studyingImage.src },
+  gacha: { src: gachaImage.src },
+};
 ---
 
-<Layout
-  title="月ウサギのそだてかた 攻略情報"
-  description="月ウサギのそだてかたの武器合成最適化、ガチャ期待値計算、目標達成までの日数計算をサポートする非公式ファン攻略サイト"
->
-  <div class="space-y-10">
-    <!-- ヒーローセクション -->
-    <div class="relative rounded-2xl overflow-hidden shadow-xl group">
-      <div
-        class="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent z-10 transition-opacity duration-500 group-hover:opacity-90"
-      >
-      </div>
-      <Image
-        src={headerImage}
-        alt="月ウサギのそだてかた"
-        class="w-full h-48 sm:h-64 object-cover transform transition-transform duration-700 group-hover:scale-105"
-      />
-      <div class="absolute bottom-0 left-0 p-6 sm:p-8 z-20 text-white">
-        <p class="text-gray-200 text-sm sm:text-base opacity-90">
-          月ウサギのそだてかたの非公式ファン攻略サイトです
-        </p>
-      </div>
-    </div>
-
-    <!-- ツール一覧 -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <!-- 武器図鑑 -->
-      <a
-        href="/weapons"
-        class="group relative bg-white rounded-2xl shadow-sm border border-gray-100 p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 overflow-hidden"
-      >
-        <div
-          class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"
-        >
-          <Image
-            src={L1Image}
-            alt="武器図鑑"
-            class="w-24 h-24 object-contain grayscale"
-          />
-        </div>
-        <div class="relative z-10">
-          <div
-            class="w-12 h-12 bg-amber-100/50 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 overflow-hidden"
-          >
-            <Image
-              src={L1Image}
-              alt="武器図鑑"
-              class="w-full h-full object-contain"
-            />
-          </div>
-          <h3
-            class="text-xl font-bold text-gray-800 mb-2 group-hover:text-amber-600 transition-colors"
-          >
-            武器図鑑
-          </h3>
-          <p class="text-gray-500 text-sm leading-relaxed">
-            各武器のレアリティと必要合成数を確認できます。
-          </p>
-        </div>
-        <div
-          class="absolute bottom-0 left-0 h-1 w-0 bg-amber-500 group-hover:w-full transition-all duration-300"
-        >
-        </div>
-      </a>
-
-      <!-- 武器目標計算 -->
-      <a
-        href="/weapons/goal"
-        class="group relative bg-white rounded-2xl shadow-sm border border-gray-100 p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 overflow-hidden"
-      >
-        <div
-          class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"
-        >
-          <Image
-            src={studyingImage}
-            alt="武器目標計算"
-            class="w-24 h-24 object-contain grayscale"
-          />
-        </div>
-        <div class="relative z-10">
-          <div
-            class="w-12 h-12 bg-blue-100/50 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 overflow-hidden"
-          >
-            <Image
-              src={studyingImage}
-              alt="武器目標計算"
-              class="w-full h-full object-contain"
-            />
-          </div>
-          <h3
-            class="text-xl font-bold text-gray-800 mb-2 group-hover:text-blue-600 transition-colors"
-          >
-            武器目標計算
-          </h3>
-          <p class="text-gray-500 text-sm leading-relaxed">
-            目標の武器を作るための日数を計算します。
-          </p>
-        </div>
-        <div
-          class="absolute bottom-0 left-0 h-1 w-0 bg-blue-500 group-hover:w-full transition-all duration-300"
-        >
-        </div>
-      </a>
-
-      <!-- ガチャシミュ -->
-      <a
-        href="/weapons/gacha"
-        class="group relative bg-white rounded-2xl shadow-sm border border-gray-100 p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 overflow-hidden"
-      >
-        <div
-          class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"
-        >
-          <Image
-            src={gachaImage}
-            alt="武器ガチャシミュレータ"
-            class="w-24 h-24 object-contain grayscale"
-          />
-        </div>
-        <div class="relative z-10">
-          <div
-            class="w-12 h-12 bg-purple-100/50 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 overflow-hidden"
-          >
-            <Image
-              src={gachaImage}
-              alt="武器ガチャシミュレータ"
-              class="w-full h-full object-contain"
-            />
-          </div>
-          <h3
-            class="text-xl font-bold text-gray-800 mb-2 group-hover:text-purple-600 transition-colors"
-          >
-            武器ガチャシミュレータ
-          </h3>
-          <p class="text-gray-500 text-sm leading-relaxed">
-            武器ガチャを回した時の獲得武器をシミュレートします。
-          </p>
-        </div>
-        <div
-          class="absolute bottom-0 left-0 h-1 w-0 bg-purple-500 group-hover:w-full transition-all duration-300"
-        >
-        </div>
-      </a>
-    </div>
-
-    <!-- インフォメーション -->
-    <div class="bg-gray-50 rounded-2xl p-6 border border-gray-100 text-center">
-      <p class="text-gray-500 text-sm">
-        当サイトは「月ウサギのそだてかた」のファンサイトであり、公式とは一切関係ありません。<br
-        />
-        各種データは最新のバージョンと異なる場合があります。
-      </p>
-    </div>
-  </div>
+<Layout title={t.home.title} description={t.home.description}>
+  <HomePage locale="ja" images={images} />
 </Layout>
