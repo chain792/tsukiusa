@@ -3,6 +3,7 @@ import type { Translations } from './types';
 export const ja: Translations = {
   layout: {
     siteName: '月ウサギのそだてかた 攻略',
+    gameTitle: '月ウサギのそだてかた',
     siteInfo: '攻略情報',
     mobileTitle: '月ウサ攻略',
     home: 'ホーム',
@@ -25,7 +26,7 @@ export const ja: Translations = {
   },
   catalog: {
     title: '武器図鑑',
-    description: '月ウサギのそだてかた全武器のレアリティと必要合成数一覧。L1からU4まで、各武器の詳細情報を確認できます',
+    description: '月ウサギのそだてかた全武器のレアリティと必要合成数一覧。L1からU3まで、各武器の詳細情報を確認できます',
     baseWeapon: '基準武器:',
     baseWeaponNote: '※ 各武器1本を作るのに、基準武器が何本必要かを表示します',
   },
@@ -56,7 +57,7 @@ export const ja: Translations = {
   },
   gacha: {
     title: '武器ガチャシミュレータ',
-    description: '武器ガチャN回で獲得できる武器の期待値を計算。G1やU4までの道のりを可視化します。月ウサギのそだてかた攻略',
+    description: '武器ガチャN回で獲得できる武器の期待値を計算。G1やU3までの道のりを可視化します。月ウサギのそだてかた攻略',
     subtitle: '武器ガチャを回した時の獲得武器の期待値を計算します',
     simulationSettings: 'シミュレーション設定',
     gachaLevel: 'ガチャレベル',

@@ -42,6 +42,7 @@ export const weapons = {
   G1: { tier: 'Galaxy', level: 1, requiredL1: 864 },
   // Universe
   U4: { tier: 'Universe', level: 4, requiredL1: 1728 },
+  U3: { tier: 'Universe', level: 3, requiredL1: 3456 },
 } as const;
 
 // 武器名の型
@@ -57,7 +58,7 @@ export const weaponNames: WeaponName[] = [
   'L4', 'L3', 'L2', 'L1',
   'S4', 'S3', 'S2', 'S1',
   'G4', 'G3', 'G2', 'G1',
-  'U4',
+  'U4', 'U3',
 ];
 
 // ティアの型
@@ -106,11 +107,12 @@ export const synthesisRules: Record<WeaponName, { output: WeaponName; count: num
   G2: { output: 'G1', count: 2 },
   G1: { output: 'U4', count: 2 },
   // Universe
-  U4: null, // 最上位、合成不可
+  U4: { output: 'U3', count: 2 },
+  U3: null, // 最上位、合成不可
 };
 
 // ガチャレベルの型定義
-export type GachaLevel = 8 | 9 | 10 | 11 | 12 | 13 | 14;
+export type GachaLevel = 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
 
 // ガチャ確率テーブルの型定義
 export interface GachaRate {

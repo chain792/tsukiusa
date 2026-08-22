@@ -3,6 +3,7 @@ export type Locale = 'ja' | 'en';
 export interface Translations {
   layout: {
     siteName: string;
+    gameTitle: string;
     siteInfo: string;
     mobileTitle: string;
     home: string;

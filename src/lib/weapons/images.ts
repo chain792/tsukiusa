@@ -31,6 +31,7 @@ import G3Image from '../../assets/G3.png';
 import G2Image from '../../assets/G2.png';
 import G1Image from '../../assets/G1.png';
 import U4Image from '../../assets/U4.png';
+import U3Image from '../../assets/U3.png';
 
 export const weaponImages: Record<string, ImageMetadata> = {
   N4: N4Image,
@@ -66,4 +67,5 @@ export const weaponImages: Record<string, ImageMetadata> = {
   G2: G2Image,
   G1: G1Image,
   U4: U4Image,
+  U3: U3Image,
 };

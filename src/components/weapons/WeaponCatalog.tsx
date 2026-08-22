@@ -28,7 +28,7 @@ function getRequiredBase(weaponName: WeaponName, baseName: WeaponName): number {
 }
 
 // 基準武器の選択肢定義（value のみ、ラベルはロケールから生成）
-const baseWeaponValues: WeaponName[] = ['L1', 'S4', 'S3', 'S2', 'S1', 'G4', 'G3', 'G2', 'G1', 'U4'];
+const baseWeaponValues: WeaponName[] = ['L1', 'S4', 'S3', 'S2', 'S1', 'G4', 'G3', 'G2', 'G1', 'U4', 'U3'];
 
 export default function WeaponCatalog({ locale = 'ja' }: { locale?: Locale }) {
   const t = getTranslations(locale);

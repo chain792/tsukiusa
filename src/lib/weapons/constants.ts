@@ -67,4 +67,5 @@ export const bonusThresholds: Record<number, number> = {
   12: 900,
   13: 800,
   14: 700,
+  15: 700, // 700が下限
 };

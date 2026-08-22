@@ -72,7 +72,7 @@ export default function GachaAnalyzer({ locale = 'ja' }: { locale?: Locale }) {
   const t = getTranslations(locale);
 
   // ガチャ設定
-  const [gachaLevel, setGachaLevel] = useState<GachaLevel>(14);
+  const [gachaLevel, setGachaLevel] = useState<GachaLevel>(15);
   const [totalPulls, setTotalPulls] = useState<number | ''>(2000);
 
   // 折りたたみセクションの開閉状態

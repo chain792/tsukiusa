@@ -26,6 +26,16 @@ Astro 5 + React 19 + TypeScript + Tailwind CSS 4
 
 詳細は `docs/` 参照：
 - `docs/app.md` - アプリケーション仕様、プロジェクト構成
-- `docs/weapon.md` - 武器一覧とL1換算値
+- `docs/weapon.md` - 武器一覧、L1換算値、攻撃力データ
 - `docs/synthesis.md` - 合成ルール
-- `docs/gacha.md` - ガチャ確率
+- `docs/gacha.md` - ガチャ確率、累積ボーナス
+- `docs/patchnotes/` - 公式パッチノートの要約（1アップデート1ファイル）
+- `docs/ideas.md` - 新機能・新ページのバックログ
+- `docs/loop-log.md` - 改善ループの記録
+
+## スキル
+
+- `tsukiusa-research` - 公式Discord・公式@wikiから最新情報を収集して docs に反映する
+- `tsukiusa-loop` - リサーチ→企画→実装→フィードバックのループを1周まわす
+
+ゲーム情報の調査やサイト改善を進めるときは、まずこれらのスキルを呼ぶこと。

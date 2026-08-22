@@ -96,6 +96,18 @@ export const gachaRates: GachaRate[] = [
     starRate: 0.0016,
     starDistribution: { S4: 0.75, S3: 0.14, S2: 0.07, S1: 0.04 },
   },
+  {
+    level: 15,
+    normalRate: 0.009, normalDistribution,
+    magicRate, magicDistribution,
+    rareRate, rareDistribution,
+    uniqueRate, uniqueDistribution,
+    epicRate, epicDistribution,
+    legendRate: 0.05,
+    legendDistribution: { L4: 0.5, L3: 0.3, L2: 0.15, L1: 0.05 },
+    starRate: 0.002,
+    starDistribution: { S4: 0.75, S3: 0.14, S2: 0.07, S1: 0.04 },
+  },
 ];
 
 // ガチャレベルから確率テーブルを取得

@@ -16,6 +16,7 @@ const synthesisOrder: WeaponName[] = [
   'L4', 'L3', 'L2', 'L1',
   'S4', 'S3', 'S2', 'S1',
   'G4', 'G3', 'G2', 'G1',
+  'U4',
 ];
 
 // 期待値分析を実行
@@ -65,7 +66,7 @@ export function analyzeExpectation(
   synthesizedResults.sort((a, b) => {
     const aIndex = synthesisOrder.indexOf(a.name);
     const bIndex = synthesisOrder.indexOf(b.name);
-    // U4 は synthesisOrder に含まれないので -1 になる、最後にソート
+    // U3 は synthesisOrder に含まれないので -1 になる、最後にソート
     if (aIndex === -1) return 1;
     if (bIndex === -1) return -1;
     return bIndex - aIndex;

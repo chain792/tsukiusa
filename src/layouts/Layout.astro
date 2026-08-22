@@ -15,8 +15,8 @@ const t = getTranslations(locale);
 // SEO関連の定数
 const siteName = t.layout.siteName;
 const defaultDescription = locale === 'ja'
-  ? "月ウサギのそだてかた - 武器合成の計画とガチャ分析ができる非公式ファン攻略サイト"
-  : "How to Raise a Moon Rabbit - Unofficial fan strategy site for weapon synthesis planning and gacha analysis";
+  ? `${t.layout.gameTitle} - 武器合成の計画とガチャ分析ができる非公式ファン攻略サイト`
+  : `${t.layout.gameTitle} - Unofficial fan strategy site for weapon synthesis planning and gacha analysis`;
 const pageDescription = description || defaultDescription;
 const fullTitle = `${title} | ${siteName}`;
 const canonicalUrl = new URL(currentPath, Astro.site).href;
@@ -146,7 +146,7 @@ function isActive(path: string): boolean {
         <div class="p-6 flex justify-between items-start">
           <div>
             <h1 class="text-xl font-bold text-gray-800 mb-2">
-              {locale === 'ja' ? '月ウサギのそだてかた' : 'Tsukiusa'}
+              {t.layout.gameTitle}
             </h1>
             <p class="text-sm text-gray-600">{t.layout.siteInfo}</p>
           </div>
