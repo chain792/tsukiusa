@@ -8,6 +8,7 @@ interface HomePageProps {
     catalog: { src: string };
     goal: { src: string };
     gacha: { src: string };
+    skills: { src: string };
   };
 }
 
@@ -45,6 +46,16 @@ export default function HomePage({ locale = 'ja', images }: HomePageProps) {
       hoverText: 'group-hover:text-purple-600',
       barColor: 'bg-purple-500',
     },
+    {
+      href: getLocalePath('/skills', locale),
+      image: images.skills,
+      title: t.home.skillsTitle,
+      description: t.home.skillsDescription,
+      color: 'emerald',
+      bgClass: 'bg-emerald-100/50',
+      hoverText: 'group-hover:text-emerald-600',
+      barColor: 'bg-emerald-500',
+    },
   ];
 
   return (
@@ -65,7 +76,7 @@ export default function HomePage({ locale = 'ja', images }: HomePageProps) {
       </div>
 
       {/* ツール一覧 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {tools.map((tool) => (
           <a
             key={tool.href}

@@ -57,15 +57,67 @@ await pg(305)
 | 446 | パッチノート（目次のみ） |
 
 ### 画像の取得
-wiki の画像は署名不要でそのまま落とせる。
+wiki の画像は署名不要で落とせるが、**ブラウザ相当のヘッダーを揃えないと 403 になるものがある**
+（拡張子が大文字 `.PNG` のファイルで発生した）。最初から以下のヘッダーで叩くこと。
 
 ```bash
-curl -sL -A "Mozilla/5.0" -e "https://w.atwiki.jp/tsukiusa/pages/<PAGE_ID>.html" \
-  "<img src>" -o src/assets/<CODE>.png
-sips -z 400 400 src/assets/<CODE>.png   # 既存アセットは 400x400 に統一
+curl -s --http1.1 -o out.png -w "%{http_code}\n" \
+ -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36' \
+ -H 'Accept: image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8' \
+ -H 'Referer: https://w.atwiki.jp/' \
+ -H 'Sec-Fetch-Dest: image' -H 'Sec-Fetch-Mode: no-cors' -H 'Sec-Fetch-Site: cross-site' \
+ "https://img.atwiki.jp/tsukiusa/attach/<PAGE_ID>/<N>/<FILE>"
 ```
 
+サイズは既存アセットに揃える（武器 400x400 / スキルアイコン 128x128）。
+`sips -z H W file.png` でリサイズ。落とし終えたら必ず検証する:
+
+```bash
+file src/assets/skills/*.png | grep -v "PNG image data, 128 x 128"   # 何も出なければOK
+```
+
+失敗すると **HTMLのエラーページが .png として保存される**ので、`file` での確認は必須。
+
+### アイコンを一括で集める
+一覧ページ内のリンクから個別ページIDを取り、各ページの先頭画像を拾う。
+1回のJSで73件 fetch すると CDP がタイムアウトするので **25件ずつ**に区切る。
+
+```js
+window.__links=[...document.querySelectorAll('#wikibody table a')]
+  .map(a=>({name:a.textContent.trim(), id:(a.getAttribute('href')||'').match(/(\d+)\.html/)?.[1]}))
+  .filter(x=>x.id&&x.name);
+window.__icons=window.__icons||{};
+for(const x of window.__links.filter(x=>!(x.id in window.__icons)).slice(0,25)){
+  const r=await fetch('/tsukiusa/pages/'+x.id+'.html',{credentials:'include'});
+  const d=new DOMParser().parseFromString(await r.text(),'text/html');
+  window.__icons[x.id]=d.querySelector('#wikibody img')?.getAttribute('src')??null;
+}
+Object.keys(window.__icons).length+' / '+window.__links.length
+```
+
+### シェルの落とし穴
+zsh では `path` は `PATH` に連動する特殊変数。`while read -r id path` のように使うと
+PATH が壊れて `command not found` が連発する。別名（`rel` など）にすること。
+
 注意: `/tsukiusa/search` はボット検証が入るので使わない。ページ一覧から探すこと。
+
+### 表の取り出し
+wiki の表は等級列などに `rowspan` を使っている。`innerText` で取ると行の対応が崩れるので、
+`table.rows` を回して**セル数で判定**する:
+
+```js
+const t=document.querySelector('#wikibody table');
+let group=null; const out=[];
+for(let i=1;i<t.rows.length;i++){
+  let c=[...t.rows[i].cells].map(x=>x.innerText.trim().replace(/\s+/g,' '));
+  if(c.length===COLS+1){group=c[0];c=c.slice(1);}  // rowspan の親行
+  if(c.length!==COLS||!c[0]) continue;
+  out.push([group,...c].join('\t'));
+}
+out.join('\n')
+```
+
+出力が長いと途中で切られるので `out.slice(n)` で分割して取ること。
 
 ## 2. Discord パッチノートを読む
 
@@ -144,6 +196,20 @@ npx tsx verify.tmp.mts; rm -f verify.tmp.mts
 ```
 
 実機確認は `npm run dev`（http://localhost:4321）＋ Chrome拡張のスクリーンショット。
+
+拡張の `resize_window` はビューポートに反映されないことがある。モバイル幅の検証はJSで直接測る:
+
+```js
+const main=document.querySelector('main');
+main.style.width='375px'; main.style.maxWidth='375px';
+await new Promise(r=>setTimeout(r,300));
+const sc=document.querySelector('.overflow-x-auto');
+const res={ innerScrolls: sc.scrollWidth>sc.clientWidth,
+  pageOverflow: document.documentElement.scrollWidth>document.documentElement.clientWidth+1 };
+main.style.width=''; main.style.maxWidth=''; JSON.stringify(res)
+```
+
+`pageOverflow: false` かつ広い表は `innerScrolls: true` が正しい状態。
 
 ## 5. 不明点は推測せず聞く
 

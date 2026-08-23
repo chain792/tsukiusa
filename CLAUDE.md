@@ -27,6 +27,7 @@ Astro 5 + React 19 + TypeScript + Tailwind CSS 4
 詳細は `docs/` 参照：
 - `docs/app.md` - アプリケーション仕様、プロジェクト構成
 - `docs/weapon.md` - 武器一覧、L1換算値、攻撃力データ
+- `docs/skill.md` - スキルのデータスキーマ、出典、スキルルーン確率
 - `docs/synthesis.md` - 合成ルール
 - `docs/gacha.md` - ガチャ確率、累積ボーナス
 - `docs/patchnotes/` - 公式パッチノートの要約（1アップデート1ファイル）

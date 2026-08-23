@@ -7,10 +7,12 @@ export interface Translations {
     siteInfo: string;
     mobileTitle: string;
     home: string;
-    weapons: string;
     weaponCatalog: string;
     goalCalculator: string;
     gachaSimulator: string;
+    weapons: string;
+    skills: string;
+    skillCatalog: string;
   };
   home: {
     title: string;
@@ -22,7 +24,39 @@ export interface Translations {
     goalDescription: string;
     gachaTitle: string;
     gachaDescription: string;
+    skillsTitle: string;
+    skillsDescription: string;
     disclaimer: string;
+  };
+  skillCatalog: {
+    title: string;
+    description: string;
+    search: string;
+    searchPlaceholder: string;
+    tier: string;
+    element: string;
+    kind: string;
+    all: string;
+    sortBy: string;
+    sortName: string;
+    sortCooldown: string;
+    sortMp: string;
+    sortMpPerSec: string;
+    colName: string;
+    colTier: string;
+    colElement: string;
+    colKind: string;
+    colTarget: string;
+    colCooldown: string;
+    colMp: string;
+    colMpPerSec: string;
+    skillLevel: string;
+    levelNote: string;
+    resultCount: string;
+    noResults: string;
+    reset: string;
+    mpNote: string;
+    nameNote: string;
   };
   catalog: {
     title: string;

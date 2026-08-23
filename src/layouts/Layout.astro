@@ -33,6 +33,7 @@ const homePath = getLocalePath('/', locale);
 const weaponsPath = getLocalePath('/weapons', locale);
 const goalPath = getLocalePath('/weapons/goal', locale);
 const gachaPath = getLocalePath('/weapons/gacha', locale);
+const skillsPath = getLocalePath('/skills', locale);
 
 // 言語切替先のパス
 const switchLocale = locale === 'ja' ? 'en' : 'ja';
@@ -228,6 +229,29 @@ function isActive(path: string): boolean {
                 }`}
               >
                 {t.layout.gachaSimulator}
+              </a>
+            </li>
+          </ul>
+
+          <!-- スキルセクション -->
+          <div class="mb-2 mt-4">
+            <p
+              class="px-4 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider"
+            >
+              {t.layout.skills}
+            </p>
+          </div>
+          <ul class="space-y-1">
+            <li>
+              <a
+                href={skillsPath}
+                class={`block px-4 py-2 rounded-md transition-colors ${
+                  isActive(skillsPath)
+                    ? "bg-blue-50 text-blue-700 font-medium"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                {t.layout.skillCatalog}
               </a>
             </li>
           </ul>
