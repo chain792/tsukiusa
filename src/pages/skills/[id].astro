@@ -1,0 +1,17 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { SkillPage } from '../../components/skills';
+import { skills, getSkillDisplayName } from '../../lib/skills';
+
+export function getStaticPaths() {
+  return skills.map(skill => ({ params: { id: skill.id }, props: { skill } }));
+}
+
+const { skill } = Astro.props;
+const name = getSkillDisplayName(skill, 'ja');
+const description = `月ウサギのそだてかた「${name}」のクールタイム・MP消費・発動効果・覚醒効果・スキルルーンの効果一覧と、狙いの効果を引くまでに必要な変換回数`;
+---
+
+<Layout title={name} description={description}>
+  <SkillPage skillId={skill.id} locale="ja" client:load />
+</Layout>

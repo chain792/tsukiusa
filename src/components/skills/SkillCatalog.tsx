@@ -32,7 +32,7 @@ import {
   type SkillElement,
   type SkillKind,
 } from '../../lib/skills';
-import { getTranslations } from '../../i18n';
+import { getTranslations, getLocalePath } from '../../i18n';
 import type { Locale } from '../../i18n/types';
 import SkillDetailPanel from './SkillDetailPanel';
 
@@ -390,6 +390,17 @@ export default function SkillCatalog({ locale = 'ja' }: { locale?: Locale }) {
                       <tr>
                         <td colSpan={7} className="p-0 border-t border-gray-100">
                           <SkillDetailPanel skill={skill} detail={skillDetails[skill.id]} locale={locale} />
+                          <div className="px-4 pb-4 md:px-6 bg-blue-50/30">
+                            <a
+                              href={getLocalePath(`/skills/${skill.id}`, locale)}
+                              className="inline-flex items-center gap-1 text-xs md:text-sm font-medium text-blue-600 hover:text-blue-800"
+                            >
+                              {t.skillCatalog.runeTitle}
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                              </svg>
+                            </a>
+                          </div>
                         </td>
                       </tr>
                     )}

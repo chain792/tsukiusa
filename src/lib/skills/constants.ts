@@ -37,6 +37,20 @@ export const skillTargetNames: Record<Locale, Record<SkillTarget, string>> = {
   },
 };
 
+export const runeTierNames: Record<Locale, Record<string, string>> = {
+  ja: { Magic: 'マジック', Rare: 'レア', Unique: 'ユニーク', Epic: 'エピック', Legend: 'レジェンド', Star: 'スター' },
+  en: { Magic: 'Magic', Rare: 'Rare', Unique: 'Unique', Epic: 'Epic', Legend: 'Legend', Star: 'Star' },
+};
+
+export const runeTierColors: Record<string, string> = {
+  Magic: '#3B82F6',
+  Rare: '#16A34A',
+  Unique: '#B45309',
+  Epic: '#7C3AED',
+  Legend: '#F59E0B',
+  Star: '#A855F7',
+};
+
 /** 既存の武器レア度カラーと揃える */
 export const skillTierColors: Record<SkillTier, string> = {
   Rare: '#16A34A',

@@ -1,0 +1,17 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import { SkillPage } from '../../../components/skills';
+import { skills, getSkillDisplayName } from '../../../lib/skills';
+
+export function getStaticPaths() {
+  return skills.map(skill => ({ params: { id: skill.id }, props: { skill } }));
+}
+
+const { skill } = Astro.props;
+const name = getSkillDisplayName(skill, 'en');
+const description = `Cooldown, MP cost, active and awakening effects, and skill rune odds for "${name}" in Idle MoonRabbit`;
+---
+
+<Layout title={name} description={description}>
+  <SkillPage skillId={skill.id} locale="en" client:load />
+</Layout>
