@@ -18,5 +18,17 @@ export {
   skillTierColors,
   skillElementColors,
 } from './constants';
-export { getSkillDisplayName, getMpAtLevel, getMpPerSecond, defaultSkillLevel } from './utils';
+export {
+  getSkillDisplayName,
+  getMpAtLevel,
+  getMpPerSecond,
+  getEffectiveLevel,
+  defaultSkillLevel,
+} from './utils';
 export { skillImages } from './images';
+export {
+  skillDetails,
+  type SkillDetail,
+  type SkillOwnEffect,
+  type SkillAwakening,
+} from './details';

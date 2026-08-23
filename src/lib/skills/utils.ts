@@ -1,5 +1,6 @@
 import type { Locale } from '../../i18n/types';
 import type { Skill } from './data';
+import { skillDetails } from './details';
 
 /** ロケールに応じたスキル名 */
 export function getSkillDisplayName(skill: Skill, locale: Locale = 'ja'): string {
@@ -25,8 +26,16 @@ export const defaultSkillLevel = 300;
  */
 export function getMpAtLevel(skill: Skill, level: number): number {
   if (skill.mpLv1 === 0) return 0;
-  const safeLevel = Math.max(1, level);
-  return Math.round(skill.mpLv1 * (1 + 0.01 * (safeLevel - 1)));
+  return Math.round(skill.mpLv1 * (1 + 0.01 * (getEffectiveLevel(skill, level) - 1)));
+}
+
+/**
+ * 指定レベルをそのスキルの上限で丸めた実効レベル。
+ * レジェンド以下は Lv.110、スタースキルは Lv.100 が上限。
+ */
+export function getEffectiveLevel(skill: Skill, level: number): number {
+  const max = skillDetails[skill.id]?.maxLevel ?? 110;
+  return Math.min(Math.max(1, level), max);
 }
 
 /**

@@ -52,6 +52,18 @@ export interface Translations {
     colMpPerSec: string;
     skillLevel: string;
     levelNote: string;
+    details: string;
+    close: string;
+    effect: string;
+    ownEffect: string;
+    ownEffectNote: string;
+    awakeningEffect: string;
+    awakeningLevel: string;
+    inheritsFrom: string;
+    inheritsNote: string;
+    maxLevelLabel: string;
+    noOwnEffect: string;
+    jaOnlyNote: string;
     resultCount: string;
     noResults: string;
     reset: string;

@@ -119,6 +119,47 @@ out.join('\n')
 
 出力が長いと途中で切られるので `out.slice(n)` で分割して取ること。
 
+### 大量ページはブラウザではなく curl で取る（重要）
+
+wikiのHTMLページも**ブラウザ相当のヘッダーを付ければ curl で取れる**。
+73ページ規模のスクレイプはブラウザ内でやらず、最初から curl + ローカルパースにすること。
+
+```bash
+curl -s --http1.1 -o out.html -w "%{http_code}\n" \
+ -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36' \
+ -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' \
+ -H 'Accept-Language: ja,en-US;q=0.9' \
+ -H 'Sec-Fetch-Dest: document' -H 'Sec-Fetch-Mode: navigate' -H 'Sec-Fetch-Site: none' \
+ "https://w.atwiki.jp/tsukiusa/pages/20.html"
+```
+
+ブラウザ内で集めたデータを外に出そうとしても**うまくいかない**:
+- ローカルHTTPサーバーへの `fetch` POST → atwiki の CSP でブロックされる
+- `document.execCommand('copy')` → ユーザー操作が無いので失敗する
+- `javascript_tool` の戻り値 → 約1,500〜2,000文字で切られるので大きいデータは分割地獄になる
+
+ブラウザを使うのは**ページIDの一覧を取る**ところまでにして、本体の取得は curl に回す。
+
+### HTMLのセル抽出（curl 側）
+`innerText` が使えないので、最初の table からセルを引き抜く:
+
+```python
+import re, html
+def cells(doc, idx=0):
+    body = re.search(r'id="wikibody"(.*)', doc, re.S).group(1)
+    t = re.findall(r'<table[^>]*>(.*?)</table>', body, re.S)[idx]
+    out = []
+    for m in re.finditer(r'<t[dh][^>]*>(.*?)</t[dh]>', t, re.S):
+        s = re.sub(r'<br\s*/?>', ' ', m.group(1), flags=re.I)
+        s = re.sub(r'<[^>]+>', '', s)
+        s = html.unescape(s).replace('　', ' ').replace('\xa0', ' ')
+        out.append(re.sub(r'\s+', ' ', s).strip())
+    return out
+```
+
+**ラベルは完全一致で探さない。** `<br>` や全角スペースが空白に化けて
+`所持効果 (覚醒段階によって変動)` のように隙間が入る。`startswith` で拾うこと。
+
 ## 2. Discord パッチノートを読む
 
 パッチノートは**縦長画像スライド**（1枚 ≈ 4129×4817px）。`get_page_text` では読めない。
@@ -211,7 +252,17 @@ main.style.width=''; main.style.maxWidth=''; JSON.stringify(res)
 
 `pageOverflow: false` かつ広い表は `innerScrolls: true` が正しい状態。
 
-## 5. 不明点は推測せず聞く
+## 5. 一覧ページの記載を鵜呑みにしない
+
+一覧表のヘッダーが全行に対して正しいとは限らない。実例:
+`スキル（リン）`(140) は全等級のMP列を「MAX (lv.110)」と表記していたが、
+個別ページを見るとスタースキルは **Lv.100** が上限だった。
+同様にスキルルーンの確率も「全スキル共通」ではなくスターだけ別だった。
+
+**サンプルを2〜3件、種類の違うもの（等級・属性など）で開いて確認する。**
+一覧だけで作ったデータは、後で個別ページを見たときに誤りが出てくる。
+
+## 6. 不明点は推測せず聞く
 
 攻略サイトの数値を誤るとユーザーに実害が出る。以下は**推測で埋めない**:
 - 新武器の合成必要本数

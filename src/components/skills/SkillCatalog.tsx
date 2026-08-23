@@ -4,10 +4,11 @@
  * リンの全スキルを等級ごとにまとめて表示する。
  * - 名前で検索、等級・属性・種類で絞り込み
  * - 等級の中は属性（光→闇→火→水）でまとめ、その中の並び順を切り替え
+ * - 行をクリックすると詳細（発動効果・所持効果・覚醒効果・継承元）を展開
  * - 等級をまたいで列がずれないよう、テーブルは1つにまとめて colgroup で幅を固定
  * - スキルレベルを指定するとMP消費量が再計算される（推定式・utils 参照）
  */
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import {
   skills,
   skillTiers,
@@ -20,9 +21,11 @@ import {
   skillTierColors,
   skillElementColors,
   skillImages,
+  skillDetails,
   getSkillDisplayName,
   getMpAtLevel,
   getMpPerSecond,
+  getEffectiveLevel,
   defaultSkillLevel,
   type Skill,
   type SkillTier,
@@ -31,6 +34,7 @@ import {
 } from '../../lib/skills';
 import { getTranslations } from '../../i18n';
 import type { Locale } from '../../i18n/types';
+import SkillDetailPanel from './SkillDetailPanel';
 
 type SortKey = 'name' | 'cooldown' | 'mp' | 'mpPerSec';
 
@@ -71,6 +75,16 @@ export default function SkillCatalog({ locale = 'ja' }: { locale?: Locale }) {
   const [sortKey, setSortKey] = useState<SortKey>('name');
   // 空入力を許可するため number | '' 型
   const [skillLevel, setSkillLevel] = useState<number | ''>(defaultSkillLevel);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+
+  const toggleExpanded = (id: string) => {
+    setExpanded(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const level = typeof skillLevel === 'number' && skillLevel > 0 ? skillLevel : 1;
 
@@ -302,10 +316,35 @@ export default function SkillCatalog({ locale = 'ja' }: { locale?: Locale }) {
                       </span>
                     </th>
                   </tr>
-                  {items.map(skill => (
-                    <tr key={skill.id} className="border-t border-gray-100 hover:bg-gray-50/70">
+                  {items.map(skill => {
+                    const isOpen = expanded.has(skill.id);
+                    return (
+                    <Fragment key={skill.id}>
+                    <tr
+                      className="border-t border-gray-100 hover:bg-gray-50/70 cursor-pointer"
+                      onClick={() => toggleExpanded(skill.id)}
+                    >
                       <td className="px-4 py-2">
                         <div className="flex items-center gap-2.5">
+                          <button
+                            type="button"
+                            aria-expanded={isOpen}
+                            aria-label={t.skillCatalog.details}
+                            onClick={e => {
+                              e.stopPropagation();
+                              toggleExpanded(skill.id);
+                            }}
+                            className="shrink-0 text-gray-400 hover:text-gray-700"
+                          >
+                            <svg
+                              className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-90' : ''}`}
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                          </button>
                           <img
                             src={skillImages[skill.id].src}
                             alt=""
@@ -334,12 +373,29 @@ export default function SkillCatalog({ locale = 'ja' }: { locale?: Locale }) {
                       <td className="px-3 py-2 text-right text-gray-700 tabular-nums">{skill.cooldown}s</td>
                       <td className="px-3 py-2 text-right text-gray-700 tabular-nums">
                         {getMpAtLevel(skill, level).toLocaleString()}
+                        {getEffectiveLevel(skill, level) !== level && (
+                          <span className="block text-[10px] text-gray-400 font-normal">
+                            {t.skillCatalog.maxLevelLabel.replace(
+                              '{n}',
+                              String(getEffectiveLevel(skill, level)),
+                            )}
+                          </span>
+                        )}
                       </td>
                       <td className="px-4 py-2 text-right font-bold text-gray-800 tabular-nums">
                         {getMpPerSecond(skill, level).toFixed(1)}
                       </td>
                     </tr>
-                  ))}
+                    {isOpen && (
+                      <tr>
+                        <td colSpan={7} className="p-0 border-t border-gray-100">
+                          <SkillDetailPanel skill={skill} detail={skillDetails[skill.id]} locale={locale} />
+                        </td>
+                      </tr>
+                    )}
+                    </Fragment>
+                    );
+                  })}
                 </tbody>
               ))}
             </table>
@@ -350,6 +406,7 @@ export default function SkillCatalog({ locale = 'ja' }: { locale?: Locale }) {
       <div className="text-[10px] md:text-xs text-gray-500 space-y-1">
         <p>{t.skillCatalog.levelNote}</p>
         <p>{t.skillCatalog.mpNote}</p>
+        {t.skillCatalog.jaOnlyNote && <p>{t.skillCatalog.jaOnlyNote}</p>}
         {t.skillCatalog.nameNote && <p>{t.skillCatalog.nameNote}</p>}
       </div>
     </div>
